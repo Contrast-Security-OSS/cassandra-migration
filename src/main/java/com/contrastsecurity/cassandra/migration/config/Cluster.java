@@ -1,4 +1,4 @@
-package com.contrastsecurity.cassandra.migration;
+package com.contrastsecurity.cassandra.migration.config;
 
 public class Cluster {
     private static final String PROPERTY_PREFIX = "cassandra.migration.cluster.";

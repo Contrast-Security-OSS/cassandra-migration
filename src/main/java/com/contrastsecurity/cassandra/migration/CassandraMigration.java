@@ -2,6 +2,7 @@ package com.contrastsecurity.cassandra.migration;
 
 import com.contrastsecurity.cassandra.migration.action.Initialize;
 import com.contrastsecurity.cassandra.migration.action.Migrate;
+import com.contrastsecurity.cassandra.migration.config.Keyspace;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.Host;
@@ -14,19 +15,16 @@ import java.util.List;
 public class CassandraMigration {
     private static final Log LOG = LogFactory.getLog(CassandraMigration.class);
 
-    private final String defaultLocation = "cassandra/migration";
-
     private Keyspace keyspace;
 
     public CassandraMigration() {
-        Keyspace keyspace = new Keyspace();
+        this.keyspace = new Keyspace();
     }
 
     public int migrate() {
         return execute(new Action<Integer>() {
             public Integer execute(Session session) {
-                MigrationVersion version = new MigrationVersion();
-                new Initialize().run(session, version, keyspace.getName());
+                new Initialize().run(session, keyspace);
 
                 Migrate migrate = new Migrate();
                 return migrate.run();

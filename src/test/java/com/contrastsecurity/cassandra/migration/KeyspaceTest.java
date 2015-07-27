@@ -1,5 +1,6 @@
 package com.contrastsecurity.cassandra.migration;
 
+import com.contrastsecurity.cassandra.migration.config.Keyspace;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

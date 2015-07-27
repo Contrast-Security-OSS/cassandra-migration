@@ -1,4 +1,6 @@
-package com.contrastsecurity.cassandra.migration;
+package com.contrastsecurity.cassandra.migration.config;
+
+import com.contrastsecurity.cassandra.migration.config.Cluster;
 
 public class Keyspace {
     private static final String PROPERTY_PREFIX = "cassandra.migration.keyspace.";
