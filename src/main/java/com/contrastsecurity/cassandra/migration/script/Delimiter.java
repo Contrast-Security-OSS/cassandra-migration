@@ -32,7 +32,7 @@ public class Delimiter {
     /**
      * Creates a new delimiter.
      *
-     * @param delimiter The actual delimiter string.
+     * @param delimiter   The actual delimiter string.
      * @param aloneOnLine Whether the delimiter sits alone on a new line or not.
      */
     public Delimiter(String delimiter, boolean aloneOnLine) {
