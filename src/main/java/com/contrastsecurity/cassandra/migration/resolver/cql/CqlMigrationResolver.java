@@ -2,11 +2,11 @@ package com.contrastsecurity.cassandra.migration.resolver.cql;
 
 import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.config.ScriptsLocation;
+import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
+import com.contrastsecurity.cassandra.migration.info.ResolvedMigration;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationInfoHelper;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.resolver.ResolvedMigrationComparator;
-import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
-import com.contrastsecurity.cassandra.migration.info.ResolvedMigration;
 import com.contrastsecurity.cassandra.migration.utils.Pair;
 import com.contrastsecurity.cassandra.migration.utils.scanner.Resource;
 import com.contrastsecurity.cassandra.migration.utils.scanner.Scanner;
@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.zip.CRC32;
 
 /**
- * Migration resolver for sql files on the classpath. The sql files must have names like
- * V1__Description.sql or V1_1__Description.sql.
+ * Migration resolver for cql files on the classpath. The cql files must have names like
+ * V1__Description.cql or V1_1__Description.cql.
  */
 public class CqlMigrationResolver implements MigrationResolver {
 
@@ -33,45 +33,46 @@ public class CqlMigrationResolver implements MigrationResolver {
     private final ScriptsLocation location;
 
     /**
+     * The encoding of Sql migrations.
+     */
+    private final String encoding;
+
+    /**
      * The prefix for sql migrations
      */
-    private final String sqlMigrationPrefix;
+    private final static String CQL_MIGRATION_PREFIX = "V";
+    ;
 
     /**
      * The separator for sql migrations
      */
-    private final String sqlMigrationSeparator;
+    private final static String CQL_MIGRATION_SEPARATOR = "__";
 
     /**
      * The suffix for sql migrations
      */
-    private final String sqlMigrationSuffix;
+    private final static String CQL_MIGRATION_SUFFIX = ".cql";
 
     /**
      * Creates a new instance.
      *
-     * @param classLoader           The ClassLoader for loading migrations on the classpath.
-     * @param location              The location on the classpath where to migrations are located.
-     * @param sqlMigrationPrefix    The prefix for sql migrations
-     * @param sqlMigrationSeparator The separator for sql migrations
-     * @param sqlMigrationSuffix    The suffix for sql migrations
+     * @param classLoader The ClassLoader for loading migrations on the classpath.
+     * @param location    The location on the classpath where to migrations are located.
      */
-    public CqlMigrationResolver(ClassLoader classLoader, ScriptsLocation location,
-                                String sqlMigrationPrefix, String sqlMigrationSeparator, String sqlMigrationSuffix) {
+    public CqlMigrationResolver(ClassLoader classLoader, ScriptsLocation location, String encoding) {
         this.scanner = new Scanner(classLoader);
         this.location = location;
-        this.sqlMigrationPrefix = sqlMigrationPrefix;
-        this.sqlMigrationSeparator = sqlMigrationSeparator;
-        this.sqlMigrationSuffix = sqlMigrationSuffix;
+        this.encoding = encoding;
     }
 
     public List<ResolvedMigration> resolveMigrations() {
         List<ResolvedMigration> migrations = new ArrayList<>();
 
-        Resource[] resources = scanner.scanForResources(location, sqlMigrationPrefix, sqlMigrationSuffix);
+        Resource[] resources = scanner.scanForResources(location, CQL_MIGRATION_PREFIX, CQL_MIGRATION_SUFFIX);
         for (Resource resource : resources) {
             ResolvedMigration resolvedMigration = extractMigrationInfo(resource);
             resolvedMigration.setPhysicalLocation(resource.getLocationOnDisk());
+            resolvedMigration.setExecutor(new CqlMigrationExecutor(resource, encoding));
 
             migrations.add(resolvedMigration);
         }
@@ -91,7 +92,7 @@ public class CqlMigrationResolver implements MigrationResolver {
 
         Pair<MigrationVersion, String> info =
                 MigrationInfoHelper.extractVersionAndDescription(resource.getFilename(),
-                        sqlMigrationPrefix, sqlMigrationSeparator, sqlMigrationSuffix);
+                        CQL_MIGRATION_PREFIX, CQL_MIGRATION_SEPARATOR, CQL_MIGRATION_SUFFIX);
         migration.setVersion(info.getLeft());
         migration.setDescription(info.getRight());
 

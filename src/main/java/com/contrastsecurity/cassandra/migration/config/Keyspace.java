@@ -1,7 +1,5 @@
 package com.contrastsecurity.cassandra.migration.config;
 
-import com.contrastsecurity.cassandra.migration.config.Cluster;
-
 public class Keyspace {
     private static final String PROPERTY_PREFIX = "cassandra.migration.keyspace.";
 
@@ -29,9 +27,9 @@ public class Keyspace {
     private String name;
 
     public Keyspace() {
-        this.cluster = new Cluster();
+        cluster = new Cluster();
         String keyspaceP = System.getProperty(KeyspaceProperty.NAME.getName());
-        if(null != keyspaceP)
+        if (null != keyspaceP)
             this.name = keyspaceP;
     }
 

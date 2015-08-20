@@ -60,9 +60,9 @@ public class SchemaVersionDAO {
                 .where(eq("keyspace_name", keyspace.getName()))
                 .and(eq("columnfamily_name", tableName));
         ResultSet results = session.execute(statement);
-        for ( Row row : results ) {
+        for (Row row : results) {
             String table = row.getString("columnfamily_name");
-            if(null != table && table.equalsIgnoreCase(tableName)) {
+            if (null != table && table.equalsIgnoreCase(tableName)) {
                 return true;
             }
         }
@@ -89,9 +89,9 @@ public class SchemaVersionDAO {
                 .from(keyspace.getName(), tableName)
                 .orderBy(QueryBuilder.asc("version"));
 
-        List<AppliedMigration>appliedMigrations = new ArrayList<>();
+        List<AppliedMigration> appliedMigrations = new ArrayList<>();
         ResultSet results = session.execute(statement);
-        for ( Row row : results ) {
+        for (Row row : results) {
             AppliedMigration appliedMigration = new AppliedMigration(
                     MigrationVersion.fromVersion(row.getString("version")),
                     row.getString("description"),

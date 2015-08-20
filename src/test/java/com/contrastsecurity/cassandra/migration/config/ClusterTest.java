@@ -1,7 +1,7 @@
-package com.contrastsecurity.cassandra.migration;
+package com.contrastsecurity.cassandra.migration.config;
 
-import com.contrastsecurity.cassandra.migration.config.Cluster;
 import org.junit.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;

@@ -3,27 +3,6 @@ package com.contrastsecurity.cassandra.migration.config;
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
 
 public final class ScriptsLocation implements Comparable<ScriptsLocation> {
-    private static final String PROPERTY_PREFIX = "cassandra.migration.scripts.";
-
-    public enum ScriptsProperty {
-        LOCATION(PROPERTY_PREFIX + "location", "Location of the migration scripts");
-
-        private String name;
-        private String description;
-
-        ScriptsProperty(String name, String description) {
-            this.name = name;
-            this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-    }
 
     private static final String CLASSPATH_PREFIX = "classpath:";
     public static final String FILESYSTEM_PREFIX = "filesystem:";

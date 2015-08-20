@@ -1,3 +1,18 @@
+/**
+ * Copyright 2010-2015 Axel Fontaine
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.contrastsecurity.cassandra.migration.info;
 
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
@@ -53,9 +68,9 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
         init(tokenize(normalizedVersion), normalizedVersion);
     }
 
-    private void init(List<BigInteger>versionParts, String displayText) {
+    private void init(List<BigInteger> versionParts, String displayText) {
         String tableP = System.getProperty(MigrationVersionProperty.TABLE.getName());
-        if(null != tableP)
+        if (null != tableP)
             this.table = tableP;
 
         this.versionParts = versionParts;
@@ -73,6 +88,29 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
         if (this.equals(EMPTY)) return null;
         if (this.equals(LATEST)) return Long.toString(Long.MAX_VALUE);
         return displayText;
+    }
+
+    /**
+     * @return The textual representation of the version.
+     */
+    @Override
+    public String toString() {
+        return displayText;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MigrationVersion version1 = (MigrationVersion) o;
+
+        return compareTo(version1) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return versionParts == null ? 0 : versionParts.hashCode();
     }
 
     @Override

@@ -16,7 +16,7 @@ public class Initialize {
         this.migrationVersionTable = MigrationVersion.EMPTY.getTable();
 
         SchemaVersionDAO dao = new SchemaVersionDAO(session, keyspace, migrationVersionTable);
-        if(!dao.tableExists())
+        if (!dao.tableExists())
             dao.createTable();
     }
 }

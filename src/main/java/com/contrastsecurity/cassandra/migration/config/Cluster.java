@@ -33,19 +33,19 @@ public class Cluster {
 
     public Cluster() {
         String contactpointsP = System.getProperty(ClusterProperty.CONTACTPOINTS.getName());
-        if(null != contactpointsP)
-            this.contactpoints = contactpointsP.replaceAll("\\s+","").split("[,]");
+        if (null != contactpointsP)
+            this.contactpoints = contactpointsP.replaceAll("\\s+", "").split("[,]");
 
         String portP = System.getProperty(ClusterProperty.PORT.getName());
-        if(null != portP )
+        if (null != portP)
             this.port = Integer.parseInt(portP);
 
         String usernameP = System.getProperty(ClusterProperty.USERNAME.getName());
-        if(null != usernameP)
+        if (null != usernameP)
             this.username = usernameP;
 
         String passwordP = System.getProperty(ClusterProperty.PASSWORD.getName());
-        if(null != passwordP)
+        if (null != passwordP)
             this.password = passwordP;
     }
 

@@ -62,9 +62,9 @@ public class JavaUtilLog implements Log {
     /**
      * Log the message at the specified level with the specified exception if any.
      *
-     * @param level The level to log at.
+     * @param level   The level to log at.
      * @param message The message to log.
-     * @param e The exception, if any.
+     * @param e       The exception, if any.
      */
     private void log(Level level, String message, Exception e) {
         // millis and thread are filled by the constructor

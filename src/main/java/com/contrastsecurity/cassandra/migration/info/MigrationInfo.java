@@ -1,5 +1,21 @@
+/**
+ * Copyright 2010-2015 Axel Fontaine
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.contrastsecurity.cassandra.migration.info;
 
+import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.utils.ObjectUtils;
 
 import java.util.Date;
@@ -28,7 +44,7 @@ public class MigrationInfo implements Comparable<MigrationInfo> {
      * @param context           The current context.
      */
     public MigrationInfo(ResolvedMigration resolvedMigration, AppliedMigration appliedMigration,
-                             MigrationInfoContext context) {
+                         MigrationInfoContext context) {
         this.resolvedMigration = resolvedMigration;
         this.appliedMigration = appliedMigration;
         this.context = context;
@@ -46,6 +62,13 @@ public class MigrationInfo implements Comparable<MigrationInfo> {
      */
     public AppliedMigration getAppliedMigration() {
         return appliedMigration;
+    }
+
+    public MigrationType getType() {
+        if (appliedMigration != null) {
+            return appliedMigration.getType();
+        }
+        return resolvedMigration.getType();
     }
 
     public Integer getChecksum() {

@@ -1,4 +1,4 @@
-package com.contrastsecurity.cassandra.migration.utils;
+package com.contrastsecurity.cassandra.migration;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
@@ -26,7 +26,7 @@ public abstract class BaseIntegTest {
     }
 
     protected void closeSession(Session session) {
-        if(null != session) {
+        if (null != session) {
             if (null != session.getCluster())
                 session.getCluster().close();
             session.close();

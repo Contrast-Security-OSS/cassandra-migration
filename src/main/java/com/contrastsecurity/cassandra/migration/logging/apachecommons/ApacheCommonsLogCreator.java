@@ -15,9 +15,9 @@
  */
 package com.contrastsecurity.cassandra.migration.logging.apachecommons;
 
-import org.apache.commons.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogCreator;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Log Creator for Apache Commons Logging.

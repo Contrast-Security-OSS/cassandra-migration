@@ -25,8 +25,8 @@ public class CqlMigrationExecutor implements MigrationExecutor {
     /**
      * Creates a new cql script migration based on this cql script.
      *
-     * @param cqlScriptResource   The resource containing the cql script.
-     * @param encoding            The encoding of this Sql migration.
+     * @param cqlScriptResource The resource containing the cql script.
+     * @param encoding          The encoding of this Sql migration.
      */
     public CqlMigrationExecutor(Resource cqlScriptResource, String encoding) {
         this.cqlScriptResource = cqlScriptResource;

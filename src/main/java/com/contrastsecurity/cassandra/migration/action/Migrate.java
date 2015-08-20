@@ -12,18 +12,20 @@ import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.service.MigrationInfoService;
 import com.contrastsecurity.cassandra.migration.utils.StopWatch;
-
-import java.sql.SQLException;
+import com.contrastsecurity.cassandra.migration.utils.TimeFormat;
+import com.datastax.driver.core.Session;
 
 public class Migrate {
     private static final Log LOG = LogFactory.getLog(Migrate.class);
 
     private final SchemaVersionDAO schemaVersionDAO;
     private final MigrationResolver migrationResolver;
+    private final Session session;
 
-    public Migrate(MigrationResolver migrationResolver, SchemaVersionDAO schemaVersionDAO) {
+    public Migrate(MigrationResolver migrationResolver, SchemaVersionDAO schemaVersionDAO, Session session) {
         this.migrationResolver = migrationResolver;
         this.schemaVersionDAO = schemaVersionDAO;
+        this.session = session;
     }
 
     public int run() {
@@ -31,9 +33,8 @@ public class Migrate {
         stopWatch.start();
 
         int migrationSuccessCount = 0;
-        while(true) {
+        while (true) {
             final boolean firstRun = migrationSuccessCount == 0;
-
 
             MigrationInfoService infoService = new MigrationInfoService(migrationResolver, schemaVersionDAO);
             infoService.load();
@@ -72,39 +73,36 @@ public class Migrate {
             MigrationInfo[] pendingMigrations = infoService.pending();
 
             if (pendingMigrations.length == 0) {
-                return migrationSuccessCount;
+                break;
             }
-            applyMigration(pendingMigrations[0]);
+
+            boolean isOutOfOrder = pendingMigrations[0].getVersion().compareTo(currentSchemaVersion) < 0;
+            applyMigration(pendingMigrations[0], isOutOfOrder);
 
             migrationSuccessCount++;
         }
+
         stopWatch.stop();
-        return 0;
+
+        logSummary(migrationSuccessCount, stopWatch.getTotalTimeMillis());
+
+        return migrationSuccessCount;
     }
 
-    private MigrationVersion applyMigration(final MigrationInfo migration) {
+    private MigrationVersion applyMigration(final MigrationInfo migration, boolean isOutOfOrder) {
         MigrationVersion version = migration.getVersion();
-        LOG.info("Migrating keyspace " + schemaVersionDAO.getKeyspace().getName() + " to version " + version +
-                " - " + migration.getDescription());
+        LOG.info("Migrating keyspace " + schemaVersionDAO.getKeyspace().getName() + " to version " + version + " - " + migration.getDescription() +
+                (isOutOfOrder ? " (out of order)" : ""));
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
         try {
             final MigrationExecutor migrationExecutor = migration.getResolvedMigration().getExecutor();
-            if (migrationExecutor.executeInTransaction()) {
-                new TransactionTemplate(connectionUserObjects).execute(new TransactionCallback<Void>() {
-                    public Void doInTransaction() throws SQLException {
-                        migrationExecutor.execute(connectionUserObjects);
-                        return null;
-                    }
-                });
-            } else {
-                try {
-                    migrationExecutor.execute(connectionUserObjects);
-                } catch (SQLException e) {
-                    throw new CassandraMigrationException("Unable to apply migration", e);
-                }
+            try {
+                migrationExecutor.execute(session);
+            } catch (Exception e) {
+                throw new CassandraMigrationException("Unable to apply migration", e);
             }
             LOG.debug("Successfully completed and committed migration of keyspace " +
                     schemaVersionDAO.getKeyspace().getName() + " to version " + version);
@@ -127,8 +125,27 @@ public class Migrate {
 
         AppliedMigration appliedMigration = new AppliedMigration(version, migration.getDescription(),
                 migration.getType(), migration.getScript(), migration.getChecksum(), executionTime, true);
-        metaDataTable.addAppliedMigration(appliedMigration);
+        schemaVersionDAO.addAppliedMigration(appliedMigration);
 
         return version;
+    }
+
+    /**
+     * Logs the summary of this migration run.
+     *
+     * @param migrationSuccessCount The number of successfully applied migrations.
+     * @param executionTime         The total time taken to perform this migration run (in ms).
+     */
+    private void logSummary(int migrationSuccessCount, long executionTime) {
+        if (migrationSuccessCount == 0) {
+            LOG.info("Keyspace " + schemaVersionDAO.getKeyspace().getName() + " is up to date. No migration necessary.");
+            return;
+        }
+
+        if (migrationSuccessCount == 1) {
+            LOG.info("Successfully applied 1 migration to keyspace " + schemaVersionDAO.getKeyspace().getName() + " (execution time " + TimeFormat.format(executionTime) + ").");
+        } else {
+            LOG.info("Successfully applied " + migrationSuccessCount + " migrations to keyspace " + schemaVersionDAO.getKeyspace().getName() + " (execution time " + TimeFormat.format(executionTime) + ").");
+        }
     }
 }
