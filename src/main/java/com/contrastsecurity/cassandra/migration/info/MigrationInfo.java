@@ -107,13 +107,21 @@ public class MigrationInfo implements Comparable<MigrationInfo> {
             if (resolvedMigration.getVersion().compareTo(context.target) > 0) {
                 return MigrationState.ABOVE_TARGET;
             }
-            if ((resolvedMigration.getVersion().compareTo(context.lastApplied) < 0)) {
+            if ((resolvedMigration.getVersion().compareTo(context.lastApplied) < 0) && !context.outOfOrder) {
                 return MigrationState.IGNORED;
             }
             return MigrationState.PENDING;
         }
 
         if (resolvedMigration == null) {
+            if (MigrationType.SCHEMA == appliedMigration.getType()) {
+                return MigrationState.SUCCESS;
+            }
+
+            if ((MigrationType.BASELINE == appliedMigration.getType()) || (MigrationType.INIT == appliedMigration.getType())) {
+                return MigrationState.BASELINE;
+            }
+
             if (getVersion().compareTo(context.lastResolved) < 0) {
                 if (appliedMigration.isSuccess()) {
                     return MigrationState.MISSING_SUCCESS;
@@ -126,6 +134,13 @@ public class MigrationInfo implements Comparable<MigrationInfo> {
                 }
                 return MigrationState.FUTURE_FAILED;
             }
+        }
+
+        if (appliedMigration.isSuccess()) {
+            if (appliedMigration.getVersionRank() == appliedMigration.getInstalledRank()) {
+                return MigrationState.SUCCESS;
+            }
+            return MigrationState.OUT_OF_ORDER;
         }
         return MigrationState.FAILED;
     }
@@ -151,7 +166,10 @@ public class MigrationInfo implements Comparable<MigrationInfo> {
      */
     public String validate() {
         if (!context.pendingOrFuture
-                && (resolvedMigration == null)) {
+                && (resolvedMigration == null)
+                && (appliedMigration.getType() != MigrationType.SCHEMA)
+                && (appliedMigration.getType() != MigrationType.BASELINE)
+                && (appliedMigration.getType() != MigrationType.INIT)) {
             return "Detected applied migration not resolved locally: " + getVersion();
         }
 
@@ -162,6 +180,10 @@ public class MigrationInfo implements Comparable<MigrationInfo> {
 
         if (resolvedMigration != null && appliedMigration != null) {
             if (getVersion().compareTo(context.baseline) > 0) {
+                if (resolvedMigration.getType() != appliedMigration.getType()) {
+                    return createMismatchMessage("Type", appliedMigration.getVersion(),
+                            appliedMigration.getType(), resolvedMigration.getType());
+                }
                 if (!ObjectUtils.nullSafeEquals(resolvedMigration.getChecksum(), appliedMigration.getChecksum())) {
                     return createMismatchMessage("Checksum", appliedMigration.getVersion(),
                             appliedMigration.getChecksum(), resolvedMigration.getChecksum());

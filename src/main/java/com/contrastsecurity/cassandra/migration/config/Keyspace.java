@@ -29,7 +29,7 @@ public class Keyspace {
     public Keyspace() {
         cluster = new Cluster();
         String keyspaceP = System.getProperty(KeyspaceProperty.NAME.getName());
-        if (null != keyspaceP)
+        if (null != keyspaceP && keyspaceP.trim().length() != 0)
             this.name = keyspaceP;
     }
 

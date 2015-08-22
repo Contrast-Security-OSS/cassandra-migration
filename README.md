@@ -50,8 +50,13 @@ Logging level can be set by passing the following arguments:
 * DEBUG: '-X'
 * WARNING: '-q'
 
-## Options
-Options can be set via either API or VM option.
+## VM Options
+Options can be set either programmatically with API or via VM options.
+
+Migration
+* cassandra.migration.scripts.locations: Locations of the migration scripts in CSV format. Scripts are scanned in the specified folder recursively.
+* cassandra.migration.scripts.encoding: The encoding of CQL scripts (default=UTF-8)
+* cassandra.migration.version.target: The target version. Migrations with a higher version number will be ignored. (default=latest)
 
 Cluster
 * cassandra.migration.cluster.contactpoints: Comma separated values of node IP addresses (default=localhost)
@@ -63,10 +68,4 @@ Keyspace
 * cassandra.migration.keyspace.name: Name of Cassandra keyspace (required)
 
 Schema version table
-* cassandra.migration.version.table: Migration version table name(default=migration_version)
-
-Migration scripts
-* cassandra.migration.scripts.locations: Locations of the migration scripts in CSV format. Scripts are scanned in the specified folder recursively.
-
-## Limitations
-Does not implement node coordination in cluster yet.
+* cassandra.migration.version.table: Migration version table name (default=migration_version)

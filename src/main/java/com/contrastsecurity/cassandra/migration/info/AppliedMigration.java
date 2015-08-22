@@ -23,6 +23,15 @@ import java.util.Date;
  * A migration applied to the database (maps to a row in the metadata table).
  */
 public class AppliedMigration implements Comparable<AppliedMigration> {
+    /**
+     * The position of this version amongst all others. (For easy order by sorting)
+     */
+    private int versionRank;
+
+    /**
+     * The order in which this migration was applied amongst all others. (For out of order detection)
+     */
+    private int installedRank;
 
     /**
      * The target version of this migration.
@@ -35,6 +44,11 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     private String description;
 
     /**
+     * The type of migration (CQL, JAVA_DRIVER, ...)
+     */
+    private MigrationType type;
+
+    /**
      * The name of the script to execute for this migration, relative to its classpath location.
      */
     private String script;
@@ -43,11 +57,6 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
      * The checksum of the migration. (Optional)
      */
     private Integer checksum;
-
-    /**
-     * The type of migration (CQL, JAVA_DRIVER, ...)
-     */
-    private MigrationType type;
 
     /**
      * The timestamp when this migration was installed.
@@ -72,8 +81,11 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     /**
      * Creates a new applied migration. Only called from the RowMapper.
      *
+     * @param versionRank   The position of this version amongst all others. (For easy order by sorting)
+     * @param installedRank The order in which this migration was applied amongst all others. (For out of order detection)
      * @param version       The target version of this migration.
      * @param description   The description of the migration.
+     * @param type          The type of migration (INIT, SQL, ...)
      * @param script        The name of the script to execute for this migration, relative to its classpath location.
      * @param checksum      The checksum of the migration. (Optional)
      * @param installedOn   The timestamp when this migration was installed.
@@ -81,14 +93,16 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
      * @param executionTime The execution time (in millis) of this migration.
      * @param success       Flag indicating whether the migration was successful or not.
      */
-    public AppliedMigration(MigrationVersion version, String description, MigrationType type,
+    public AppliedMigration(int versionRank, int installedRank, MigrationVersion version, String description, MigrationType type,
                             String script, Integer checksum, Date installedOn,
                             String installedBy, int executionTime, boolean success) {
+        this.versionRank = versionRank;
+        this.installedRank = installedRank;
         this.version = version;
         this.description = description;
+        this.type = type;
         this.script = script;
         this.checksum = checksum;
-        this.type = type;
         this.installedOn = installedOn;
         this.installedBy = installedBy;
         this.executionTime = executionTime;
@@ -100,6 +114,7 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
      *
      * @param version       The target version of this migration.
      * @param description   The description of the migration.
+     * @param type          The type of migration (INIT, SQL, ...)
      * @param script        The name of the script to execute for this migration, relative to its classpath location.
      * @param checksum      The checksum of the migration. (Optional)
      * @param executionTime The execution time (in millis) of this migration.
@@ -109,9 +124,9 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
                             Integer checksum, int executionTime, boolean success) {
         this.version = version;
         this.description = abbreviateDescription(description);
+        this.type = type;
         this.script = abbreviateScript(script);
         this.checksum = checksum;
-        this.type = type;
         this.executionTime = executionTime;
         this.success = success;
     }
@@ -153,6 +168,20 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     }
 
     /**
+     * @return The position of this version amongst all others. (For easy order by sorting)
+     */
+    public int getVersionRank() {
+        return versionRank;
+    }
+
+    /**
+     * @return The order in which this migration was applied amongst all others. (For out of order detection)
+     */
+    public int getInstalledRank() {
+        return installedRank;
+    }
+
+    /**
      * @return The target version of this migration.
      */
     public MigrationVersion getVersion() {
@@ -167,6 +196,13 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     }
 
     /**
+     * @return The type of migration (INIT, SQL, ...)
+     */
+    public MigrationType getType() {
+        return type;
+    }
+
+    /**
      * @return The name of the script to execute for this migration, relative to its classpath location.
      */
     public String getScript() {
@@ -178,13 +214,6 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
      */
     public Integer getChecksum() {
         return checksum;
-    }
-
-    /**
-     * @return The type of migration (CQL, JAVA_DRIVER, ...)
-     */
-    public MigrationType getType() {
-        return type;
     }
 
     /**
@@ -224,7 +253,9 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
         AppliedMigration that = (AppliedMigration) o;
 
         if (executionTime != that.executionTime) return false;
+        if (installedRank != that.installedRank) return false;
         if (success != that.success) return false;
+        if (versionRank != that.versionRank) return false;
         if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
         if (!description.equals(that.description)) return false;
         if (installedBy != null ? !installedBy.equals(that.installedBy) : that.installedBy != null) return false;
@@ -236,7 +267,9 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
 
     @Override
     public int hashCode() {
-        int result = version.hashCode();
+        int result = versionRank;
+        result = 31 * result + installedRank;
+        result = 31 * result + version.hashCode();
         result = 31 * result + description.hashCode();
         result = 31 * result + type.hashCode();
         result = 31 * result + script.hashCode();

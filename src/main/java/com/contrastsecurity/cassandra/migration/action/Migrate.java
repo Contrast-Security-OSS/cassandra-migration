@@ -10,7 +10,7 @@ import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
-import com.contrastsecurity.cassandra.migration.service.MigrationInfoService;
+import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.contrastsecurity.cassandra.migration.utils.StopWatch;
 import com.contrastsecurity.cassandra.migration.utils.TimeFormat;
 import com.datastax.driver.core.Session;
@@ -18,14 +18,16 @@ import com.datastax.driver.core.Session;
 public class Migrate {
     private static final Log LOG = LogFactory.getLog(Migrate.class);
 
+    private final MigrationVersion target;
     private final SchemaVersionDAO schemaVersionDAO;
     private final MigrationResolver migrationResolver;
     private final Session session;
 
-    public Migrate(MigrationResolver migrationResolver, SchemaVersionDAO schemaVersionDAO, Session session) {
+    public Migrate(MigrationResolver migrationResolver, MigrationVersion target, SchemaVersionDAO schemaVersionDAO, Session session) {
         this.migrationResolver = migrationResolver;
         this.schemaVersionDAO = schemaVersionDAO;
         this.session = session;
+        this.target = target;
     }
 
     public int run() {
@@ -36,8 +38,8 @@ public class Migrate {
         while (true) {
             final boolean firstRun = migrationSuccessCount == 0;
 
-            MigrationInfoService infoService = new MigrationInfoService(migrationResolver, schemaVersionDAO);
-            infoService.load();
+            MigrationInfoService infoService = new MigrationInfoService(migrationResolver, schemaVersionDAO, target, false, true);
+            infoService.refresh();
 
             MigrationVersion currentSchemaVersion = MigrationVersion.EMPTY;
             if (infoService.current() != null) {

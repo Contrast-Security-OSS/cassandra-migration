@@ -19,6 +19,10 @@ package com.contrastsecurity.cassandra.migration.info;
  * The current context of the migrations.
  */
 public class MigrationInfoContext {
+    /**
+     * Whether out of order migrations are allowed.
+     */
+    public boolean outOfOrder;
 
     /**
      * Whether pending or future migrations are allowed.
@@ -66,6 +70,7 @@ public class MigrationInfoContext {
 
         MigrationInfoContext context = (MigrationInfoContext) o;
 
+        if (outOfOrder != context.outOfOrder) return false;
         if (pendingOrFuture != context.pendingOrFuture) return false;
         if (schema != null ? !schema.equals(context.schema) : context.schema != null) return false;
         if (init != null ? !init.equals(context.init) : context.init != null) return false;
@@ -77,7 +82,8 @@ public class MigrationInfoContext {
 
     @Override
     public int hashCode() {
-        int result = (pendingOrFuture ? 1 : 0);
+        int result = (outOfOrder ? 1 : 0);
+        result = 31 * result + (pendingOrFuture ? 1 : 0);
         result = 31 * result + target.hashCode();
         result = 31 * result + (schema != null ? schema.hashCode() : 0);
         result = 31 * result + (init != null ? init.hashCode() : 0);

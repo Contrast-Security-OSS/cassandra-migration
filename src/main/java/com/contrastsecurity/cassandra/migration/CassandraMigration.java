@@ -3,6 +3,7 @@ package com.contrastsecurity.cassandra.migration;
 import com.contrastsecurity.cassandra.migration.action.Initialize;
 import com.contrastsecurity.cassandra.migration.action.Migrate;
 import com.contrastsecurity.cassandra.migration.config.Keyspace;
+import com.contrastsecurity.cassandra.migration.config.MigrationConfigs;
 import com.contrastsecurity.cassandra.migration.config.ScriptsLocations;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
@@ -10,29 +11,32 @@ import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.resolver.CompositeMigrationResolver;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
+import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.contrastsecurity.cassandra.migration.utils.VersionPrinter;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.Session;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
 public class CassandraMigration {
+
     private static final Log LOG = LogFactory.getLog(CassandraMigration.class);
 
     private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
     private Keyspace keyspace;
+    private MigrationConfigs configs;
 
     public CassandraMigration() {
         this.keyspace = new Keyspace();
+        this.configs = new MigrationConfigs();
     }
 
-    /**
-     * The encoding of Sql migrations. (default: UTF-8)
-     */
-    private String encoding = "UTF-8";
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
 
     /**
      * Sets the ClassLoader to use for resolving migrations on the classpath.
@@ -43,34 +47,43 @@ public class CassandraMigration {
         this.classLoader = classLoader;
     }
 
-    /**
-     * Sets the encoding of Sql migrations.
-     *
-     * @param encoding The encoding of Sql migrations. (default: UTF-8)
-     */
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
+    public Keyspace getKeyspace() {
+        return keyspace;
+    }
+
+    public void setKeyspace(Keyspace keyspace) {
+        this.keyspace = keyspace;
     }
 
     private MigrationResolver createMigrationResolver() {
-        return new CompositeMigrationResolver(classLoader, new ScriptsLocations(), encoding);
+        return new CompositeMigrationResolver(classLoader, new ScriptsLocations(), configs.getEncoding());
     }
 
     public int migrate() {
         return execute(new Action<Integer>() {
             public Integer execute(Session session) {
-                new Initialize().run(session, keyspace);
+                new Initialize().run(session, keyspace, MigrationVersion.CURRENT.getTable());
 
                 MigrationResolver migrationResolver = createMigrationResolver();
                 SchemaVersionDAO schemaVersionDAO = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
-                Migrate migrate = new Migrate(migrationResolver, schemaVersionDAO, session);
+                Migrate migrate = new Migrate(migrationResolver, configs.getTarget(), schemaVersionDAO, session);
                 return migrate.run();
             }
         });
     }
 
-    public void setKeyspace(Keyspace keyspace) {
-        this.keyspace = keyspace;
+    public MigrationInfoService info() {
+        //TODO
+        throw new NotImplementedException();
+    }
+
+    public void baseline() {
+        //TODO
+        throw new NotImplementedException();
+    }
+
+    private void configure() {
+
     }
 
     private String getConnectionInfo(Metadata metadata) {

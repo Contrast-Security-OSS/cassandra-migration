@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.contrastsecurity.cassandra.migration.service;
+package com.contrastsecurity.cassandra.migration.info;
 
+import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
 import com.contrastsecurity.cassandra.migration.info.*;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
@@ -23,33 +24,67 @@ import java.util.*;
 
 public class MigrationInfoService {
 
-    private final SchemaVersionDAO schemaVersionDAO;
-
     private final MigrationResolver migrationResolver;
 
-    private List<MigrationInfo> migrationInfos;
+    private final SchemaVersionDAO schemaVersionDAO;
 
+    /**
+     * The target version up to which to retrieve the info.
+     */
     private MigrationVersion target;
 
-    public MigrationInfoService(MigrationResolver migrationResolver, SchemaVersionDAO schemaVersionDAO) {
+    /**
+     * Allows migrations to be run "out of order".
+     * <p>If you already have versions 1 and 3 applied, and now a version 2 is found,
+     * it will be applied too instead of being ignored.</p>
+     * <p>(default: {@code false})</p>
+     */
+    private boolean outOfOrder;
+
+    /**
+     * Whether pendingOrFuture migrations are allowed.
+     */
+    private final boolean pendingOrFuture;
+
+    /**
+     * The migrations infos calculated at the last refresh.
+     */
+    private List<MigrationInfo> migrationInfos;
+
+    public MigrationInfoService(MigrationResolver migrationResolver, SchemaVersionDAO schemaVersionDAO, MigrationVersion target, boolean outOfOrder, boolean pendingOrFuture) {
         this.migrationResolver = migrationResolver;
         this.schemaVersionDAO = schemaVersionDAO;
+        this.target = target;
+        this.outOfOrder = outOfOrder;
+        this.pendingOrFuture = pendingOrFuture;
     }
 
-    public void load() {
+    /**
+     * Refreshes the info about all known migrations from both the classpath and the DB.
+     */
+    public void refresh() {
         Collection<ResolvedMigration> availableMigrations = migrationResolver.resolveMigrations();
         List<AppliedMigration> appliedMigrations = schemaVersionDAO.findAppliedMigrations();
 
         migrationInfos = mergeAvailableAndAppliedMigrations(availableMigrations, appliedMigrations);
 
         if (MigrationVersion.CURRENT == target) {
-            target = current().getVersion();
+        	target = current().getVersion();
         }
     }
 
+    /**
+     * Merges the available and the applied migrations to produce one fully aggregated and consolidated list.
+     *
+     * @param resolvedMigrations The available migrations.
+     * @param appliedMigrations  The applied migrations.
+     * @return The complete list of migrations.
+     */
+    /* private -> testing */
     List<MigrationInfo> mergeAvailableAndAppliedMigrations(Collection<ResolvedMigration> resolvedMigrations, List<AppliedMigration> appliedMigrations) {
         MigrationInfoContext context = new MigrationInfoContext();
-        //context.pendingOrFuture = pendingOrFuture;
+        context.outOfOrder = outOfOrder;
+        context.pendingOrFuture = pendingOrFuture;
         context.target = target;
 
         Map<MigrationVersion, ResolvedMigration> resolvedMigrationsMap = new TreeMap<MigrationVersion, ResolvedMigration>();
@@ -66,6 +101,13 @@ public class MigrationInfoService {
             MigrationVersion version = appliedMigration.getVersion();
             if (version.compareTo(context.lastApplied) > 0) {
                 context.lastApplied = version;
+            }
+            if (appliedMigration.getType() == MigrationType.SCHEMA) {
+                context.schema = version;
+            }
+            if ((appliedMigration.getType() == MigrationType.INIT) || (appliedMigration.getType() == MigrationType.BASELINE)) {
+                context.init = version;
+                context.baseline = version;
             }
             appliedMigrationsMap.put(version, appliedMigration);
         }
@@ -84,6 +126,10 @@ public class MigrationInfoService {
         Collections.sort(migrationInfos);
 
         return migrationInfos;
+    }
+
+    public MigrationInfo[] all() {
+        return migrationInfos.toArray(new MigrationInfo[migrationInfos.size()]);
     }
 
     public MigrationInfo current() {
@@ -106,6 +152,17 @@ public class MigrationInfoService {
         }
 
         return pendingMigrations.toArray(new MigrationInfo[pendingMigrations.size()]);
+    }
+
+    public MigrationInfo[] applied() {
+        List<MigrationInfo> appliedMigrations = new ArrayList<MigrationInfo>();
+        for (MigrationInfo migrationInfo : migrationInfos) {
+            if (migrationInfo.getState().isApplied()) {
+                appliedMigrations.add(migrationInfo);
+            }
+        }
+
+        return appliedMigrations.toArray(new MigrationInfo[appliedMigrations.size()]);
     }
 
     /**
@@ -155,5 +212,36 @@ public class MigrationInfoService {
         }
 
         return futureMigrations.toArray(new MigrationInfo[futureMigrations.size()]);
+    }
+
+    /**
+     * Retrieves the full set of infos about out of order migrations applied to the DB.
+     *
+     * @return The out of order migrations. An empty array if none.
+     */
+    public MigrationInfo[] outOfOrder() {
+        List<MigrationInfo> outOfOrderMigrations = new ArrayList<MigrationInfo>();
+        for (MigrationInfo migrationInfo : migrationInfos) {
+            if (migrationInfo.getState() == MigrationState.OUT_OF_ORDER) {
+                outOfOrderMigrations.add(migrationInfo);
+            }
+        }
+
+        return outOfOrderMigrations.toArray(new MigrationInfo[outOfOrderMigrations.size()]);
+    }
+
+    /**
+     * Validate all migrations for consistency.
+     *
+     * @return The error message, or {@code null} if everything is fine.
+     */
+    public String validate() {
+        for (MigrationInfo migrationInfo : migrationInfos) {
+            String message = migrationInfo.validate();
+            if (message != null) {
+                return message;
+            }
+        }
+        return null;
     }
 }

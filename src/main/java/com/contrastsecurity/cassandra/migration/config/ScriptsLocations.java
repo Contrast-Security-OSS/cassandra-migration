@@ -53,7 +53,7 @@ public class ScriptsLocations {
     public ScriptsLocations(String... rawLocations) {
 
         String locationsProp = System.getProperty(ScriptsLocationsProperty.LOCATIONS.getName());
-        if (locationsProp != null) {
+        if (locationsProp != null && locationsProp.trim().length() != 0) {
             rawLocations = StringUtils.tokenizeToStringArray(locationsProp, ",");
         }
 

@@ -7,6 +7,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 public abstract class BaseIntegTest {
+    private Session session;
+
     @BeforeClass
     public void beforeSuite() throws Exception {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra(
@@ -21,8 +23,11 @@ public abstract class BaseIntegTest {
     }
 
     protected Session getNewSession() {
+        if(session != null && !session.isClosed())
+            return session;
         Cluster cluster = new Cluster.Builder().addContactPoints("localhost").withPort(9146).build();
-        return cluster.connect();
+        session = cluster.connect();
+        return session;
     }
 
     protected void closeSession(Session session) {
