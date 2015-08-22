@@ -17,7 +17,6 @@ package com.contrastsecurity.cassandra.migration.info;
 
 import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
-import com.contrastsecurity.cassandra.migration.info.*;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 
 import java.util.*;
@@ -69,7 +68,7 @@ public class MigrationInfoService {
         migrationInfos = mergeAvailableAndAppliedMigrations(availableMigrations, appliedMigrations);
 
         if (MigrationVersion.CURRENT == target) {
-        	target = current().getVersion();
+            target = current().getVersion();
         }
     }
 

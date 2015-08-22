@@ -23,34 +23,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class MigrationVersion implements Comparable<MigrationVersion> {
-    private static final String PROPERTY_PREFIX = "cassandra.migration.version.";
-
-    public enum MigrationVersionProperty {
-
-        TABLE(PROPERTY_PREFIX + "table", "Migration version table name");
-
-        private String name;
-        private String description;
-
-        MigrationVersionProperty(String name, String description) {
-            this.name = name;
-            this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-    }
 
     public static final MigrationVersion EMPTY = new MigrationVersion(null, "<< Empty Schema >>");
     public static final MigrationVersion LATEST = new MigrationVersion(BigInteger.valueOf(-1), "<< Latest Version >>");
     public static final MigrationVersion CURRENT = new MigrationVersion(BigInteger.valueOf(-2), "<< Current Version >>");
 
-    private String table = "migration_version";
+    private static final String TABLE = "cassandra_migration_version";
     private List<BigInteger> versionParts;
     private String displayText;
 
@@ -69,10 +47,6 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
     }
 
     private void init(List<BigInteger> versionParts, String displayText) {
-        String tableP = System.getProperty(MigrationVersionProperty.TABLE.getName());
-        if (null != tableP)
-            this.table = tableP;
-
         this.versionParts = versionParts;
         this.displayText = displayText;
     }
@@ -159,7 +133,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
     }
 
     public String getTable() {
-        return table;
+        return TABLE;
     }
 
     private void setVersion(String version) {

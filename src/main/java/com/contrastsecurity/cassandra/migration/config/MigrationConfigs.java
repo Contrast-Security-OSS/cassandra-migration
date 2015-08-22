@@ -1,10 +1,12 @@
 package com.contrastsecurity.cassandra.migration.config;
 
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
+import com.contrastsecurity.cassandra.migration.utils.StringUtils;
 
 public class MigrationConfigs {
     public enum MigrationProperty {
         SCRIPTS_ENCODING("cassandra.migration.scripts.encoding", "Encoding for CQL scripts"),
+        SCRIPTS_LOCATIONS("cassandra.migration.scripts.locations", "Locations of the migration scripts in CSV format"),
         TARGET_VERSION("cassandra.migration.version.target", "The target version. Migrations with a higher version number will be ignored.");
 
         private String name;
@@ -26,18 +28,28 @@ public class MigrationConfigs {
 
     public MigrationConfigs() {
         String scriptsEncodingP = System.getProperty(MigrationProperty.SCRIPTS_ENCODING.getName());
-        if(null != scriptsEncodingP && scriptsEncodingP.trim().length() != 0)
+        if (null != scriptsEncodingP && scriptsEncodingP.trim().length() != 0)
             this.encoding = scriptsEncodingP;
 
         String targetVersionP = System.getProperty(MigrationProperty.TARGET_VERSION.getName());
-        if(null != targetVersionP && targetVersionP.trim().length() !=0)
+        if (null != targetVersionP && targetVersionP.trim().length() != 0)
             setTargetAsString(targetVersionP);
+
+        String locationsProp = System.getProperty(MigrationProperty.SCRIPTS_LOCATIONS.getName());
+        if (locationsProp != null && locationsProp.trim().length() != 0) {
+            scriptsLocations = StringUtils.tokenizeToStringArray(locationsProp, ",");
+        }
     }
 
     /**
      * The encoding of Cql migration scripts (default: UTF-8)
      */
     private String encoding = "UTF-8";
+
+    /**
+     * Locations of the migration scripts in CSV format (default: db/migration)
+     */
+    private String[] scriptsLocations = {"db/migration"};
 
     /**
      * The target version. Migrations with a higher version number will be ignored. (default: the latest version)
@@ -50,6 +62,14 @@ public class MigrationConfigs {
 
     public void setEncoding(String encoding) {
         this.encoding = encoding;
+    }
+
+    public String[] getScriptsLocations() {
+        return scriptsLocations;
+    }
+
+    public void setScriptsLocations(String[] scriptsLocations) {
+        this.scriptsLocations = scriptsLocations;
     }
 
     public MigrationVersion getTarget() {

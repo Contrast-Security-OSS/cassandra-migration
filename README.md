@@ -15,10 +15,12 @@ Popular database migration tools, such as Flyway and Liquibase are tailored for 
 * I already use Flyway and I do not want to maintain my own version of Flyway with Cassandra hacks
 
 ## Requirements
-* Apache Cassandra (Tested with version 2.1.5)
-* CQL schema
-* JDK (tested on JDK 7+)
+* Cassandra (Tested with version Apache Cassandra 2.1.5)
+* JDK (Tested on JDK 7+)
 * Pre-populated keyspace
+
+## Migration version table
+cassandra_migration_version
 
 ## Interface
 * Java API
@@ -67,5 +69,5 @@ Cluster
 Keyspace
 * cassandra.migration.keyspace.name: Name of Cassandra keyspace (required)
 
-Schema version table
-* cassandra.migration.version.table: Migration version table name (default=migration_version)
+## Limitations
+* Baselining not supported yet

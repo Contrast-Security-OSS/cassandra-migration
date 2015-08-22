@@ -2,15 +2,11 @@ package com.contrastsecurity.cassandra.migration.action;
 
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
-import com.contrastsecurity.cassandra.migration.info.AppliedMigration;
-import com.contrastsecurity.cassandra.migration.info.MigrationInfo;
-import com.contrastsecurity.cassandra.migration.info.MigrationState;
-import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
+import com.contrastsecurity.cassandra.migration.info.*;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
-import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.contrastsecurity.cassandra.migration.utils.StopWatch;
 import com.contrastsecurity.cassandra.migration.utils.TimeFormat;
 import com.datastax.driver.core.Session;
@@ -79,7 +75,11 @@ public class Migrate {
             }
 
             boolean isOutOfOrder = pendingMigrations[0].getVersion().compareTo(currentSchemaVersion) < 0;
-            applyMigration(pendingMigrations[0], isOutOfOrder);
+            MigrationVersion mv = applyMigration(pendingMigrations[0], isOutOfOrder);
+            if(mv == null) {
+                //no more migrations
+                break;
+            }
 
             migrationSuccessCount++;
         }

@@ -1,9 +1,7 @@
 package com.contrastsecurity.cassandra.migration.config;
 
-
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
-import com.contrastsecurity.cassandra.migration.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,39 +21,9 @@ import java.util.List;
 public class ScriptsLocations {
     private static final Log LOG = LogFactory.getLog(ScriptsLocations.class);
 
-    public enum ScriptsLocationsProperty {
-        LOCATIONS("cassandra.migration.scripts.locations", "Locations of the migration scripts in CSV format");
-
-        private String name;
-        private String description;
-
-        ScriptsLocationsProperty(String name, String description) {
-            this.name = name;
-            this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-    }
-
     private final List<ScriptsLocation> locations = new ArrayList<>();
 
-    public ScriptsLocations() {
-        String[] rawLocations = {"db/migration"};
-        new ScriptsLocations(rawLocations);
-    }
-
     public ScriptsLocations(String... rawLocations) {
-
-        String locationsProp = System.getProperty(ScriptsLocationsProperty.LOCATIONS.getName());
-        if (locationsProp != null && locationsProp.trim().length() != 0) {
-            rawLocations = StringUtils.tokenizeToStringArray(locationsProp, ",");
-        }
 
         List<ScriptsLocation> normalizedLocations = new ArrayList<>();
         for (String rawLocation : rawLocations) {

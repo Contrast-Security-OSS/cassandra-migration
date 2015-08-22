@@ -6,12 +6,12 @@ import com.contrastsecurity.cassandra.migration.config.Keyspace;
 import com.contrastsecurity.cassandra.migration.config.MigrationConfigs;
 import com.contrastsecurity.cassandra.migration.config.ScriptsLocations;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
+import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.resolver.CompositeMigrationResolver;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
-import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.contrastsecurity.cassandra.migration.utils.VersionPrinter;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.KeyspaceMetadata;
@@ -55,8 +55,12 @@ public class CassandraMigration {
         this.keyspace = keyspace;
     }
 
+    public MigrationConfigs getConfigs() {
+        return configs;
+    }
+
     private MigrationResolver createMigrationResolver() {
-        return new CompositeMigrationResolver(classLoader, new ScriptsLocations(), configs.getEncoding());
+        return new CompositeMigrationResolver(classLoader, new ScriptsLocations(configs.getScriptsLocations()), configs.getEncoding());
     }
 
     public int migrate() {
@@ -73,17 +77,22 @@ public class CassandraMigration {
     }
 
     public MigrationInfoService info() {
-        //TODO
-        throw new NotImplementedException();
+        return execute(new Action<MigrationInfoService>() {
+            public MigrationInfoService execute(Session session) {
+                MigrationResolver migrationResolver = createMigrationResolver();
+                SchemaVersionDAO schemaVersionDAO = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
+                MigrationInfoService migrationInfoService =
+                        new MigrationInfoService(migrationResolver, schemaVersionDAO, configs.getTarget(), false, true);
+                migrationInfoService.refresh();
+
+                return migrationInfoService;
+            }
+        });
     }
 
     public void baseline() {
         //TODO
         throw new NotImplementedException();
-    }
-
-    private void configure() {
-
     }
 
     private String getConnectionInfo(Metadata metadata) {

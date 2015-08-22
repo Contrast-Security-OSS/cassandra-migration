@@ -1,40 +1,70 @@
 package com.contrastsecurity.cassandra.migration;
 
+import com.contrastsecurity.cassandra.migration.config.Keyspace;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.Statement;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 public abstract class BaseIntegTest {
+    public static final String CASSANDRA__KEYSPACE = "cassandra_migration_test";
+    public static final String CASSANDRA_CONTACT_POINT = "localhost";
+    public static final int CASSANDRA_PORT = 9147;
+    public static final String CASSANDRA_USERNAME = "cassandra";
+    public static final String CASSANDRA_PASSWORD = "cassandra";
+
     private Session session;
 
     @BeforeClass
-    public void beforeSuite() throws Exception {
+    public static void beforeSuite() throws Exception {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra(
                 "cassandra-unit.yaml",
                 "target/embeddedCassandra",
-                20000L);
+                200000L);
     }
 
     @AfterClass
-    public void afterSuite() {
+    public static void afterSuite() {
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
     }
 
-    protected Session getNewSession() {
-        if(session != null && !session.isClosed())
-            return session;
-        Cluster cluster = new Cluster.Builder().addContactPoints("localhost").withPort(9146).build();
-        session = cluster.connect();
-        return session;
+    @Before
+    public void createKeyspace() {
+        Statement statement = new SimpleStatement(
+                "CREATE KEYSPACE " + CASSANDRA__KEYSPACE +
+                        "  WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
+        );
+        getSession().execute(statement);
     }
 
-    protected void closeSession(Session session) {
-        if (null != session) {
-            if (null != session.getCluster())
-                session.getCluster().close();
-            session.close();
-        }
+    @After
+    public void dropKeyspace() {
+        Statement statement = new SimpleStatement(
+                "DROP KEYSPACE " + CASSANDRA__KEYSPACE + ";"
+        );
+        getSession().execute(statement);
+    }
+
+    protected Keyspace getKeyspace() {
+        Keyspace ks = new Keyspace();
+        ks.setName(CASSANDRA__KEYSPACE);
+        ks.getCluster().setContactpoints(CASSANDRA_CONTACT_POINT);
+        ks.getCluster().setPort(CASSANDRA_PORT);
+        ks.getCluster().setUsername(CASSANDRA_USERNAME);
+        ks.getCluster().setPassword(CASSANDRA_PASSWORD);
+        return ks;
+    }
+
+    private Session getSession() {
+        if (session != null && !session.isClosed())
+            return session;
+        Cluster cluster = new Cluster.Builder().addContactPoints(CASSANDRA_CONTACT_POINT).withPort(CASSANDRA_PORT).build();
+        session = cluster.connect();
+        return session;
     }
 }

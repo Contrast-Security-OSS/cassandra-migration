@@ -7,9 +7,6 @@ import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
@@ -18,10 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.gte;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 
 public class SchemaVersionDAO {
 
@@ -48,11 +42,9 @@ public class SchemaVersionDAO {
         }
 
         Statement statement = new SimpleStatement(
-                "CREATE TABLE IF NOT EXISTS " + tableName + "(" +
+                "CREATE TABLE IF NOT EXISTS " + keyspace.getName() + "." + tableName + "(" +
                         "  version_rank int," +
                         "  installed_rank int," +
-                        "  version text," +
-                        "  version_rank counter," +
                         "  version text," +
                         "  description text," +
                         "  script text," +
@@ -68,12 +60,12 @@ public class SchemaVersionDAO {
         session.execute(statement);
 
         statement = new SimpleStatement(
-                "CREATE INDEX IF NOT EXISTS " + tableName + "_version_rank" +
+                "CREATE INDEX IF NOT EXISTS " + keyspace.getName() + "." + tableName + "_version_rank" +
                         " ON " + tableName + " (version_rank)");
         session.executeAsync(statement);
 
         statement = new SimpleStatement(
-                "CREATE TABLE IF NOT EXISTS " + tableName + COUNTS_TABLE_NAME_SUFFIX + " (" +
+                "CREATE TABLE IF NOT EXISTS " + keyspace.getName() + "." + tableName + COUNTS_TABLE_NAME_SUFFIX + " (" +
                         "  name text," +
                         "  count counter," +
                         "  PRIMARY KEY (name)" +
@@ -83,17 +75,17 @@ public class SchemaVersionDAO {
     }
 
     public boolean tablesExist() {
+        boolean schemaVersionTableExists = false;
+        boolean schemaVersionCountsTableExists = false;
+
         Statement statement = QueryBuilder
                 .select()
                 .column("columnfamily_name")
                 .from("System", "schema_columnfamilies")
                 .where(eq("keyspace_name", keyspace.getName()))
-                .and(eq("columnfamily_name", tableName));
+                .and(in("columnfamily_name", tableName, tableName + COUNTS_TABLE_NAME_SUFFIX));
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet results = session.execute(statement);
-
-        boolean schemaVersionTableExists = false;
-        boolean schemaVersionCountsTableExists = false;
         for (Row row : results) {
             String table = row.getString("columnfamily_name");
             if (null != table && table.equalsIgnoreCase(tableName)) {
@@ -133,20 +125,41 @@ public class SchemaVersionDAO {
             session.execute(update);
         }
 
-        Insert insert = QueryBuilder
+        PreparedStatement statement = session.prepare(
+                "INSERT INTO " + keyspace.getName() + "." + tableName +
+                        " (version_rank, installed_rank, version, description, type, script, checksum, installed_on," +
+                        "  installed_by, execution_time, success)" +
+                        " VALUES" +
+                        " (?, ?, ?, ?, ?, ?, ?, dateOf(now()), ?, ?, ?);"
+        );
+        session.execute(statement.bind(
+                versionRank,
+                calculateInstalledRank(),
+                version.toString(),
+                appliedMigration.getDescription(),
+                appliedMigration.getType().name(),
+                appliedMigration.getScript(),
+                appliedMigration.getChecksum(),
+                appliedMigration.getInstalledBy(),
+                appliedMigration.getExecutionTime(),
+                appliedMigration.isSuccess()
+        ));
+
+/*        Insert insert = QueryBuilder
                 .insertInto(keyspace.getName(), tableName);
         insert.value("version_rank", versionRank)
                 .value("installed_rank", calculateInstalledRank())
                 .value("version", version.toString())
                 .value("description", appliedMigration.getDescription())
-                .value("type", appliedMigration.getType())
+                .value("type", appliedMigration.getType().name())
                 .value("script", appliedMigration.getScript())
                 .value("checksum", appliedMigration.getChecksum())
+                //.value("installed_on", QueryBuilder.now())
                 .value("installed_by", appliedMigration.getInstalledBy())
                 .value("execution_time", appliedMigration.getExecutionTime())
                 .value("success", appliedMigration.isSuccess())
                 .setConsistencyLevel(ConsistencyLevel.ALL);
-        session.execute(insert);
+        session.execute(insert);*/
         LOG.debug("Schema version table " + tableName + " successfully updated to reflect changes");
     }
 
@@ -197,7 +210,7 @@ public class SchemaVersionDAO {
             ));
         }
 
-        //TODO: order by version_rank
+        //order by version_rank not necessary here as it eventually gets saved in TreeMap that uses natural ordering
 
         return resultsList;
     }
@@ -209,16 +222,16 @@ public class SchemaVersionDAO {
      */
     private int calculateInstalledRank() {
         Statement statement = new SimpleStatement(
-                "UPDATE " + tableName + COUNTS_TABLE_NAME_SUFFIX +
+                "UPDATE " + keyspace.getName() + "." + tableName + COUNTS_TABLE_NAME_SUFFIX +
                         " SET count = count + 1" +
                         "WHERE name = 'installed_rank';");
-        session.executeAsync(statement);
+        session.execute(statement);
         Select select = QueryBuilder
                 .select("count")
                 .from(tableName + COUNTS_TABLE_NAME_SUFFIX);
         select.where(eq("name", "installed_rank"));
         ResultSet result = session.execute(select);
-        return result.one().getInt("count");
+        return (int)result.one().getLong("count");
     }
 
     /**
@@ -231,7 +244,7 @@ public class SchemaVersionDAO {
         Statement statement = QueryBuilder
                 .select()
                 .column("version")
-                .from(tableName);
+                .from(keyspace.getName(), tableName);
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet versionRows = session.execute(statement);
 
