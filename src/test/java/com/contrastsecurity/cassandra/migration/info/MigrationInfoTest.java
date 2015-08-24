@@ -25,6 +25,7 @@ public class MigrationInfoTest {
     public void validate() {
         MigrationVersion version = MigrationVersion.fromVersion("1");
         String description = "test";
+        String user = "testUser";
         MigrationType type = MigrationType.CQL;
 
         ResolvedMigration resolvedMigration = new ResolvedMigration();
@@ -33,7 +34,7 @@ public class MigrationInfoTest {
         resolvedMigration.setType(type);
         resolvedMigration.setChecksum(456);
 
-        AppliedMigration appliedMigration = new AppliedMigration(version, description, type, null, 123, 0, true);
+        AppliedMigration appliedMigration = new AppliedMigration(version, description, type, null, 123, user, 0, true);
 
         MigrationInfo migrationInfo =
                 new MigrationInfo(resolvedMigration, appliedMigration, new MigrationInfoContext());

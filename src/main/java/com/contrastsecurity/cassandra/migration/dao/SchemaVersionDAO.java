@@ -144,22 +144,6 @@ public class SchemaVersionDAO {
                 appliedMigration.getExecutionTime(),
                 appliedMigration.isSuccess()
         ));
-
-/*        Insert insert = QueryBuilder
-                .insertInto(keyspace.getName(), tableName);
-        insert.value("version_rank", versionRank)
-                .value("installed_rank", calculateInstalledRank())
-                .value("version", version.toString())
-                .value("description", appliedMigration.getDescription())
-                .value("type", appliedMigration.getType().name())
-                .value("script", appliedMigration.getScript())
-                .value("checksum", appliedMigration.getChecksum())
-                //.value("installed_on", QueryBuilder.now())
-                .value("installed_by", appliedMigration.getInstalledBy())
-                .value("execution_time", appliedMigration.getExecutionTime())
-                .value("success", appliedMigration.isSuccess())
-                .setConsistencyLevel(ConsistencyLevel.ALL);
-        session.execute(insert);*/
         LOG.debug("Schema version table " + tableName + " successfully updated to reflect changes");
     }
 

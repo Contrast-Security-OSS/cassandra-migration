@@ -117,16 +117,18 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
      * @param type          The type of migration (INIT, SQL, ...)
      * @param script        The name of the script to execute for this migration, relative to its classpath location.
      * @param checksum      The checksum of the migration. (Optional)
+     * @param installedBy   The user that installed this migration.
      * @param executionTime The execution time (in millis) of this migration.
      * @param success       Flag indicating whether the migration was successful or not.
      */
     public AppliedMigration(MigrationVersion version, String description, MigrationType type, String script,
-                            Integer checksum, int executionTime, boolean success) {
+                            Integer checksum, String installedBy, int executionTime, boolean success) {
         this.version = version;
         this.description = abbreviateDescription(description);
         this.type = type;
         this.script = abbreviateScript(script);
         this.checksum = checksum;
+        this.installedBy = installedBy;
         this.executionTime = executionTime;
         this.success = success;
     }

@@ -18,12 +18,14 @@ public class Migrate {
     private final SchemaVersionDAO schemaVersionDAO;
     private final MigrationResolver migrationResolver;
     private final Session session;
+    private final String user;
 
-    public Migrate(MigrationResolver migrationResolver, MigrationVersion target, SchemaVersionDAO schemaVersionDAO, Session session) {
+    public Migrate(MigrationResolver migrationResolver, MigrationVersion target, SchemaVersionDAO schemaVersionDAO, Session session, String user) {
         this.migrationResolver = migrationResolver;
         this.schemaVersionDAO = schemaVersionDAO;
         this.session = session;
         this.target = target;
+        this.user = user;
     }
 
     public int run() {
@@ -117,7 +119,7 @@ public class Migrate {
             stopWatch.stop();
             int executionTime = (int) stopWatch.getTotalTimeMillis();
             AppliedMigration appliedMigration = new AppliedMigration(version, migration.getDescription(),
-                    migration.getType(), migration.getScript(), migration.getChecksum(), executionTime, false);
+                    migration.getType(), migration.getScript(), migration.getChecksum(), user, executionTime, false);
             schemaVersionDAO.addAppliedMigration(appliedMigration);
             throw e;
         }
@@ -126,7 +128,7 @@ public class Migrate {
         int executionTime = (int) stopWatch.getTotalTimeMillis();
 
         AppliedMigration appliedMigration = new AppliedMigration(version, migration.getDescription(),
-                migration.getType(), migration.getScript(), migration.getChecksum(), executionTime, true);
+                migration.getType(), migration.getScript(), migration.getChecksum(), user, executionTime, true);
         schemaVersionDAO.addAppliedMigration(appliedMigration);
 
         return version;
