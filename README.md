@@ -20,7 +20,13 @@ Popular database migration tools, such as Flyway and Liquibase are tailored for 
 * Pre-populated keyspace
 
 ## Migration version table
-cassandra_migration_version
+```
+cassandra@cqlsh:cassandra_migration_test> select * from cassandra_migration_version;
+ type | version_rank | checksum   | description | execution_time | installed_by | installed_on             | installed_rank | script             | success | version
+------+--------------+------------+-------------+----------------+--------------+--------------------------+----------------+--------------------+---------+---------
+  CQL |            1 | -868607833 |       First |             98 |    cassandra | 2015-08-24 15:34:15-0400 |              1 |  V1_0_0__First.cql |    True |   1.0.0
+  CQL |            2 |  564832622 |      Second |            172 |    cassandra | 2015-08-24 15:34:16-0400 |              2 | V2_0_0__Second.cql |    True |   2.0.0
+```
 
 ## Interface
 * Java API
