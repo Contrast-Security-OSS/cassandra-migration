@@ -5,10 +5,17 @@ http://www.w3.org/2001/XMLSchema-instance ">
     <groupId>com.contrastsecurity</groupId>
     <artifactId>cassandra-migration</artifactId>
     <name>Cassandra Migration</name>
-    <description>
-        Database migration tool for Apache Cassandra.
-    </description>
     <version>0.1-SNAPSHOT</version>
+    <description>
+        Database migration tool for Cassandra
+    </description>
+    <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
     <packaging>jar</packaging>
 
@@ -19,10 +26,22 @@ http://www.w3.org/2001/XMLSchema-instance ">
 
     <scm>
         <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
+        <connection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</connection>
+        <developerConnection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
+
+    <developers>
+        <developer>
+            <id>ntatsumi</id>
+            <name>Noriaki Tatsumi</name>
+        </developer>
+    </developers>
+
     <prerequisites>
         <maven>3.0.0</maven>
     </prerequisites>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -95,6 +114,15 @@ http://www.w3.org/2001/XMLSchema-instance ">
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <includes>
+                    <include>version.txt</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -124,5 +152,42 @@ http://www.w3.org/2001/XMLSchema-instance ">
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.contrastsecurity.cassandra.migration.CommandLine</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.18.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

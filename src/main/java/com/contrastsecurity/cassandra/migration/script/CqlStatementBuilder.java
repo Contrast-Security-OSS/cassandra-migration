@@ -121,7 +121,7 @@ public class CqlStatementBuilder {
     /**
      * @return The assembled statement, with the delimiter stripped off.
      */
-    public String getSqlStatement() {
+    public String getCqlStatement() {
         return statement.toString();
     }
 
@@ -251,22 +251,22 @@ public class CqlStatementBuilder {
     }
 
     /**
-     * Strips this delimiter from this sql statement.
+     * Strips this delimiter from this cql statement.
      *
-     * @param sql       The statement to parse.
+     * @param cql       The statement to parse.
      * @param delimiter The delimiter to strip.
      */
     /* private -> testing */
-    static void stripDelimiter(StringBuilder sql, Delimiter delimiter) {
+    static void stripDelimiter(StringBuilder cql, Delimiter delimiter) {
         int last;
 
-        for (last = sql.length(); last > 0; last--) {
-            if (!Character.isWhitespace(sql.charAt(last - 1))) {
+        for (last = cql.length(); last > 0; last--) {
+            if (!Character.isWhitespace(cql.charAt(last - 1))) {
                 break;
             }
         }
 
-        sql.delete(last - delimiter.getDelimiter().length(), sql.length());
+        cql.delete(last - delimiter.getDelimiter().length(), cql.length());
     }
 
     /**

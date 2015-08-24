@@ -49,10 +49,10 @@ public class CqlScript {
     /**
      * Creates a new sql script from this source.
      *
-     * @param sqlScriptSource The sql script as a text block with all placeholders already replaced.
+     * @param cqlScriptSource The sql script as a text block with all placeholders already replaced.
      */
-    public CqlScript(String sqlScriptSource) {
-        this.cqlStatements = parse(sqlScriptSource);
+    public CqlScript(String cqlScriptSource) {
+        this.cqlStatements = parse(cqlScriptSource);
         this.resource = null;
     }
 
@@ -74,7 +74,7 @@ public class CqlScript {
      *
      * @return The cql statements contained in this script.
      */
-    public List<String> getSqlStatements() {
+    public List<String> getCqlStatements() {
         return cqlStatements;
     }
 
@@ -89,9 +89,9 @@ public class CqlScript {
      * Executes this script against the database.
      */
     public void execute(final Session session) {
-        for (String sqlStatement : cqlStatements) {
-            LOG.debug("Executing SQL: " + sqlStatement);
-            session.execute(sqlStatement);
+        for (String cqlStatement : cqlStatements) {
+            LOG.debug("Executing CQL: " + cqlStatement);
+            session.execute(cqlStatement);
         }
     }
 
@@ -145,7 +145,7 @@ public class CqlScript {
             cqlStatementBuilder.addLine(line);
 
             if (cqlStatementBuilder.isTerminated()) {
-                String cqlStatement = cqlStatementBuilder.getSqlStatement();
+                String cqlStatement = cqlStatementBuilder.getCqlStatement();
                 statements.add(cqlStatement);
                 LOG.debug("Found statement: " + cqlStatement);
 
@@ -157,7 +157,7 @@ public class CqlScript {
 
         // Catch any statements not followed by delimiter.
         if (!cqlStatementBuilder.isEmpty()) {
-            statements.add(cqlStatementBuilder.getSqlStatement());
+            statements.add(cqlStatementBuilder.getCqlStatement());
         }
 
         return statements;

@@ -1,4 +1,4 @@
-Cassandra Migration (PRE-ALPHA)
+Cassandra Migration
 ========
 
 A migration tool for Apache Cassandra with CQL based on [Axel Fontaine's Flyway project](https://github.com/flyway/flyway).
@@ -33,18 +33,31 @@ cassandra_migration_version
 ## Java API
 Example:
 ```
+String[] scriptsLocations = {"migration/cassandra"};
+
+Keyspace keyspace = new Keyspace();
+keyspace.setName(CASSANDRA__KEYSPACE);
+keyspace.getCluster().setContactpoints(CASSANDRA_CONTACT_POINT);
+keyspace.getCluster().setPort(CASSANDRA_PORT);
+keyspace.getCluster().setUsername(CASSANDRA_USERNAME);
+keyspace.getCluster().setPassword(CASSANDRA_PASSWORD);
+
 CassandraMigration cm = new CassandraMigration();
-Keyspace ks = new Keyspace();
-ks.setName("mykeyspace");
-cm.setKeyspace(ks);
+cm.getConfigs().setScriptsLocations(scriptsLocations);
+cm.setKeyspace(keyspace);
 cm.migrate();
 ```
 
 ## Command line
 ```
-Main class: 'com.contrastsecurity.cassandra.migration.CommandLine'
-VM options: '-Dcassandra.migration.keyspace.name=mykeyspace'
-Arguments: 'migrate -X'
+java -jar \
+-Dcassandra.migration.scripts.locations=file:target/test-classes/migration/integ \
+-Dcassandra.migration.cluster.contactpoints=localhost \
+-Dcassandra.migration.cluster.port=9147 \
+-Dcassandra.migration.cluster.username=cassandra \
+-Dcassandra.migration.cluster.password=cassandra \
+-Dcassandra.migration.keyspace.name=cassandra_migration_test \
+target/*-jar-with-dependencies.jar migrate
 ```
 
 Logging level can be set by passing the following arguments:
@@ -56,7 +69,7 @@ Logging level can be set by passing the following arguments:
 Options can be set either programmatically with API or via VM options.
 
 Migration
-* cassandra.migration.scripts.locations: Locations of the migration scripts in CSV format. Scripts are scanned in the specified folder recursively.
+* cassandra.migration.scripts.locations: Locations of the migration scripts in CSV format. Scripts are scanned in the specified folder recursively. (default=db/migration)
 * cassandra.migration.scripts.encoding: The encoding of CQL scripts (default=UTF-8)
 * cassandra.migration.version.target: The target version. Migrations with a higher version number will be ignored. (default=latest)
 

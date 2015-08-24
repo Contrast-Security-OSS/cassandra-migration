@@ -24,7 +24,6 @@ public class CommandLine {
 
         CassandraMigration cm = new CassandraMigration();
         Keyspace ks = new Keyspace();
-        ks.setName("teamserver");
         cm.setKeyspace(ks);
         cm.migrate();
     }

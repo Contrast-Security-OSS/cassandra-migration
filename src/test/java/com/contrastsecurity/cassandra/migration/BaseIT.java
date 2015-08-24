@@ -11,7 +11,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-public abstract class BaseIntegTest {
+public abstract class BaseIT {
     public static final String CASSANDRA__KEYSPACE = "cassandra_migration_test";
     public static final String CASSANDRA_CONTACT_POINT = "localhost";
     public static final int CASSANDRA_PORT = 9147;
@@ -39,7 +39,7 @@ public abstract class BaseIntegTest {
                 "CREATE KEYSPACE " + CASSANDRA__KEYSPACE +
                         "  WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
         );
-        getSession().execute(statement);
+        getSession(getKeyspace()).execute(statement);
     }
 
     @After
@@ -47,7 +47,7 @@ public abstract class BaseIntegTest {
         Statement statement = new SimpleStatement(
                 "DROP KEYSPACE " + CASSANDRA__KEYSPACE + ";"
         );
-        getSession().execute(statement);
+        getSession(getKeyspace()).execute(statement);
     }
 
     protected Keyspace getKeyspace() {
@@ -60,10 +60,14 @@ public abstract class BaseIntegTest {
         return ks;
     }
 
-    private Session getSession() {
+    private Session getSession(Keyspace keyspace) {
         if (session != null && !session.isClosed())
             return session;
-        Cluster cluster = new Cluster.Builder().addContactPoints(CASSANDRA_CONTACT_POINT).withPort(CASSANDRA_PORT).build();
+
+        com.datastax.driver.core.Cluster.Builder builder = new com.datastax.driver.core.Cluster.Builder();
+        builder.addContactPoints(CASSANDRA_CONTACT_POINT).withPort(CASSANDRA_PORT);
+        builder.withCredentials(keyspace.getCluster().getUsername(), keyspace.getCluster().getPassword());
+        Cluster cluster = builder.build();
         session = cluster.connect();
         return session;
     }
