@@ -28,15 +28,12 @@ cassandra@cqlsh:cassandra_migration_test> select * from cassandra_migration_vers
   CQL |            2 |  564832622 |      Second |            172 |    cassandra | 2015-08-24 15:34:16-0400 |              2 | V2_0_0__Second.cql |    True |   2.0.0
 ```
 
-## Interface
-* Java API
-* Command line
-
 ## Supported Migration Script Types
 * .cql files
 * Java classes
 
-## Java API
+## Interface
+### Java API
 Example:
 ```
 String[] scriptsLocations = {"migration/cassandra"};
@@ -54,7 +51,7 @@ cm.setKeyspace(keyspace);
 cm.migrate();
 ```
 
-## Command line
+### Command line
 ```
 java -jar \
 -Dcassandra.migration.scripts.locations=file:target/test-classes/migration/integ \
