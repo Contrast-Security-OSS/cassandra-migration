@@ -28,19 +28,16 @@
     </organization>
 
     <distributionManagement>
-        <!-- Repository for snapshots -->
-        <repository>
+        <snapshotRepository>
             <id>sonatype-nexus-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
-        <!-- Repository for releases -->
+        </snapshotRepository>
         <repository>
-            <id>nexus-releases</id>
+            <id>sonatype-nexus-releases</id>
             <name>Nexus Release Repository</name>
             <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-
     <scm>
         <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
         <connection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</connection>
