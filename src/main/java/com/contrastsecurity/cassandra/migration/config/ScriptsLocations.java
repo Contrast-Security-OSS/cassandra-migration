@@ -9,13 +9,13 @@ import java.util.List;
 
 /**
  * The locations to scan recursively for migrations.
- * <p/>
+ *
  * <p>The location type is determined by its prefix.
  * Unprefixed locations or locations starting with {@code classpath:} point to a package on the classpath and may
  * contain both sql and java-based migrations.
  * Locations starting with {@code filesystem:} point to a directory on the filesystem and may only contain sql
  * migrations.</p>
- * <p/>
+ *
  * (default: db/migration)
  */
 public class ScriptsLocations {

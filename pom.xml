@@ -1,6 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd
-http://www.w3.org/2001/XMLSchema-instance ">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd http://www.w3.org/2001/XMLSchema-instance ">
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.contrastsecurity</groupId>
     <artifactId>cassandra-migration</artifactId>
@@ -24,6 +27,20 @@ http://www.w3.org/2001/XMLSchema-instance ">
         <url>contrastsecurity.com</url>
     </organization>
 
+    <distributionManagement>
+        <!-- Repository for snapshots -->
+        <repository>
+            <id>sonatype-nexus-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+        <!-- Repository for releases -->
+        <repository>
+            <id>nexus-releases</id>
+            <name>Nexus Release Repository</name>
+            <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
     <scm>
         <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
         <connection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</connection>
@@ -41,7 +58,7 @@ http://www.w3.org/2001/XMLSchema-instance ">
     <prerequisites>
         <maven>3.0.0</maven>
     </prerequisites>
-
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -126,29 +143,14 @@ http://www.w3.org/2001/XMLSchema-instance ">
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <artifactId>maven-clean-plugin</artifactId>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <version>2.6.1</version>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.5</version>
                 </plugin>
                 <plugin>
-                    <artifactId>maven-compiler-plugin</artifactId>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <version>3.3</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <version>2.18.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <version>2.6</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-install-plugin</artifactId>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <version>2.5.2</version>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.4.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>

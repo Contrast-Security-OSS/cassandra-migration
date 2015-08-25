@@ -33,23 +33,23 @@ public class CqlMigrationResolver implements MigrationResolver {
     private final ScriptsLocation location;
 
     /**
-     * The encoding of Sql migrations.
+     * The encoding of Cql migrations.
      */
     private final String encoding;
 
     /**
-     * The prefix for sql migrations
+     * The prefix for cql migrations
      */
     private final static String CQL_MIGRATION_PREFIX = "V";
     ;
 
     /**
-     * The separator for sql migrations
+     * The separator for cql migrations
      */
     private final static String CQL_MIGRATION_SEPARATOR = "__";
 
     /**
-     * The suffix for sql migrations
+     * The suffix for cql migrations
      */
     private final static String CQL_MIGRATION_SUFFIX = ".cql";
 
@@ -58,6 +58,7 @@ public class CqlMigrationResolver implements MigrationResolver {
      *
      * @param classLoader The ClassLoader for loading migrations on the classpath.
      * @param location    The location on the classpath where to migrations are located.
+     * @param encoding    The encoding of the .cql file.
      */
     public CqlMigrationResolver(ClassLoader classLoader, ScriptsLocation location, String encoding) {
         this.scanner = new Scanner(classLoader);

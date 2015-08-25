@@ -87,6 +87,7 @@ public class CqlScript {
 
     /**
      * Executes this script against the database.
+     * @param session Cassandra session
      */
     public void execute(final Session session) {
         for (String cqlStatement : cqlStatements) {

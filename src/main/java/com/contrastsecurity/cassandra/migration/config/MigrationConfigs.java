@@ -78,6 +78,7 @@ public class MigrationConfigs {
 
     /**
      * Migrations with a higher version number will be ignored. (default: the latest version)
+     * @param target Target version
      */
     public void setTargetAsString(String target) {
         this.target = MigrationVersion.fromVersion(target);

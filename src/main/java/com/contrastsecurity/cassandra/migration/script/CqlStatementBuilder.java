@@ -128,7 +128,7 @@ public class CqlStatementBuilder {
     /**
      * Analyses this line ánd extracts the new default delimiter.
      * This method is only called between statements and looks for explicit delimiter change directives.
-     *
+     * @param line Line to analyze
      * @return The new delimiter. {@code null} if it is the same as the current one.
      */
     @SuppressWarnings("UnusedParameters")

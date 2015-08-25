@@ -70,8 +70,8 @@ public class StringUtils {
 
     /**
      * <p>Checks if the String contains only unicode digits. A decimal point is not a unicode digit and returns
-     * false.</p> <p/> <p>{@code null} will return {@code false}. An empty String ("") will return {@code true}.</p>
-     * <p/>
+     * false.</p>
+     * <p>{@code null} will return {@code false}. An empty String ("") will return {@code true}.</p>
      * <pre>
      * StringUtils.isNumeric(null)   = false
      * StringUtils.isNumeric("")     = true
@@ -91,7 +91,7 @@ public class StringUtils {
     }
 
     /**
-     * Replaces all sequences of whitespace by a single blank. Ex.: "&nbsp;&nbsp;&nbsp;&nbsp;" -> " "
+     * Replaces all sequences of whitespace by a single blank.
      *
      * @param str The string to analyse.
      * @return The input string, with all whitespace collapsed.
