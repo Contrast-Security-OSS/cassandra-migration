@@ -132,6 +132,7 @@ public class SchemaVersionDAO {
                         " VALUES" +
                         " (?, ?, ?, ?, ?, ?, ?, dateOf(now()), ?, ?, ?);"
         );
+        statement.setConsistencyLevel(ConsistencyLevel.ALL);
         session.execute(statement.bind(
                 versionRank,
                 calculateInstalledRank(),
@@ -175,7 +176,7 @@ public class SchemaVersionDAO {
         if (migrationTypes.length > 0) {
             select.where(in("type", migrationTypes));
         }
-
+        select.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet results = session.execute(select);
         List<AppliedMigration> resultsList = new ArrayList<AppliedMigration>();
         for (Row row : results) {
@@ -214,6 +215,7 @@ public class SchemaVersionDAO {
                 .select("count")
                 .from(tableName + COUNTS_TABLE_NAME_SUFFIX);
         select.where(eq("name", "installed_rank"));
+        select.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet result = session.execute(select);
         return (int)result.one().getLong("count");
     }

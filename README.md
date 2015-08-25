@@ -85,5 +85,9 @@ Cluster
 Keyspace
 * cassandra.migration.keyspace.name: Name of Cassandra keyspace (required)
 
+## Cluster Coordination
+* Schema version tracking statements use ConsistencyLevel.ALL
+* Users should manage their own consistency level in the migration scripts
+
 ## Limitations
 * Baselining not supported yet
