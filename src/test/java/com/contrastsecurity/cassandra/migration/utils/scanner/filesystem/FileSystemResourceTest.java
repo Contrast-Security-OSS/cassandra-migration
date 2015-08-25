@@ -22,13 +22,13 @@ import static org.junit.Assert.assertEquals;
 public class FileSystemResourceTest {
     @Test
     public void getFilename() throws Exception {
-        assertEquals("Mig777__Test.sql", new FileSystemResource("Mig777__Test.sql").getFilename());
-        assertEquals("Mig777__Test.sql", new FileSystemResource("folder/Mig777__Test.sql").getFilename());
+        assertEquals("Mig777__Test.cql", new FileSystemResource("Mig777__Test.cql").getFilename());
+        assertEquals("Mig777__Test.cql", new FileSystemResource("folder/Mig777__Test.cql").getFilename());
     }
 
     @Test
     public void getPath() throws Exception {
-        assertEquals("Mig777__Test.sql", new FileSystemResource("Mig777__Test.sql").getLocation());
-        assertEquals("folder/Mig777__Test.sql", new FileSystemResource("folder/Mig777__Test.sql").getLocation());
+        assertEquals("Mig777__Test.cql", new FileSystemResource("Mig777__Test.cql").getLocation());
+        assertEquals("folder/Mig777__Test.cql", new FileSystemResource("folder/Mig777__Test.cql").getLocation());
     }
 }

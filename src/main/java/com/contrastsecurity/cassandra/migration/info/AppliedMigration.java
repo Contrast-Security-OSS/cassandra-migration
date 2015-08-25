@@ -85,7 +85,7 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
      * @param installedRank The order in which this migration was applied amongst all others. (For out of order detection)
      * @param version       The target version of this migration.
      * @param description   The description of the migration.
-     * @param type          The type of migration (INIT, SQL, ...)
+     * @param type          The type of migration (INIT, CQL, ...)
      * @param script        The name of the script to execute for this migration, relative to its classpath location.
      * @param checksum      The checksum of the migration. (Optional)
      * @param installedOn   The timestamp when this migration was installed.
@@ -114,7 +114,7 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
      *
      * @param version       The target version of this migration.
      * @param description   The description of the migration.
-     * @param type          The type of migration (INIT, SQL, ...)
+     * @param type          The type of migration (INIT, CQL, ...)
      * @param script        The name of the script to execute for this migration, relative to its classpath location.
      * @param checksum      The checksum of the migration. (Optional)
      * @param installedBy   The user that installed this migration.
@@ -198,7 +198,7 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     }
 
     /**
-     * @return The type of migration (INIT, SQL, ...)
+     * @return The type of migration (INIT, CQL, ...)
      */
     public MigrationType getType() {
         return type;

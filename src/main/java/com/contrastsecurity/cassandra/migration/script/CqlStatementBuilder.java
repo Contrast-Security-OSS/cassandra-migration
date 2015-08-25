@@ -217,7 +217,7 @@ public class CqlStatementBuilder {
     }
 
     /**
-     * Checks whether this line in the sql script indicates that the statement delimiter will be different from the
+     * Checks whether this line in the cql script indicates that the statement delimiter will be different from the
      * current one. Useful for database-specific stored procedures and block constructs.
      *
      * @param line      The simplified line to analyse.
@@ -295,7 +295,7 @@ public class CqlStatementBuilder {
      * @param line The line that was just added to the statement.
      */
     protected void applyStateChanges(String line) {
-        //Ignore all special characters that naturally occur in SQL, but are not opening or closing string literals
+        //Ignore all special characters that naturally occur in CQL, but are not opening or closing string literals
         String[] tokens = StringUtils.tokenizeToStringArray(line, " @<>;:=|(),+{}");
 
         List<TokenType> delimitingTokens = extractStringLiteralDelimitingTokens(tokens);

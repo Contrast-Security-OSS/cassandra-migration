@@ -13,7 +13,7 @@ public class CqlMigrationExecutor implements MigrationExecutor {
     /**
      * The Resource pointing to the cql script.
      * The complete cql script is not held as a member field here because this would use the total size of all
-     * sql migrations files in heap space during db migration, see issue 184.
+     * cql migrations files in heap space during db migration.
      */
     private final Resource cqlScriptResource;
 
@@ -26,7 +26,7 @@ public class CqlMigrationExecutor implements MigrationExecutor {
      * Creates a new cql script migration based on this cql script.
      *
      * @param cqlScriptResource The resource containing the cql script.
-     * @param encoding          The encoding of this Sql migration.
+     * @param encoding          The encoding of this Cql migration.
      */
     public CqlMigrationExecutor(Resource cqlScriptResource, String encoding) {
         this.cqlScriptResource = cqlScriptResource;

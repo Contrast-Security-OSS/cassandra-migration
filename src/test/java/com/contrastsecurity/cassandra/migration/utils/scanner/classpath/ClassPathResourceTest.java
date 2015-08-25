@@ -25,8 +25,8 @@ import static org.junit.Assert.assertEquals;
 public class ClassPathResourceTest {
     @Test
     public void getFilename() throws Exception {
-        assertEquals("Mig777__Test.sql", new ClassPathResource("Mig777__Test.sql", Thread.currentThread().getContextClassLoader()).getFilename());
-        assertEquals("Mig777__Test.sql", new ClassPathResource("folder/Mig777__Test.sql", Thread.currentThread().getContextClassLoader()).getFilename());
+        assertEquals("Mig777__Test.cql", new ClassPathResource("Mig777__Test.cql", Thread.currentThread().getContextClassLoader()).getFilename());
+        assertEquals("Mig777__Test.cql", new ClassPathResource("folder/Mig777__Test.cql", Thread.currentThread().getContextClassLoader()).getFilename());
     }
 
     @Test

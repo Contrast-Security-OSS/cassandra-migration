@@ -46,7 +46,7 @@ public class Scanner {
 
             return new ClassPathScanner(classLoader).scanForResources(location.getPath(), prefix, suffix);
         } catch (Exception e) {
-            throw new CassandraMigrationException("Unable to scan for SQL migrations in location: " + location, e);
+            throw new CassandraMigrationException("Unable to scan for CQL migrations in location: " + location, e);
         }
     }
 

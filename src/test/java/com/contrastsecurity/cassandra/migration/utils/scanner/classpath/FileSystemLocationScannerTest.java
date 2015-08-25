@@ -45,10 +45,10 @@ public class FileSystemLocationScannerTest {
 
     @Test
     public void findResourceNamesNonExistantPath() throws Exception {
-        URL url = new URL("file", null, 0, "X:\\dummy\\sql");
+        URL url = new URL("file", null, 0, "X:\\dummy\\cql");
 
         Set<String> resourceNames =
-                new FileSystemClassPathLocationScanner().findResourceNames("sql", url);
+                new FileSystemClassPathLocationScanner().findResourceNames("cql", url);
 
         assertEquals(0, resourceNames.size());
     }

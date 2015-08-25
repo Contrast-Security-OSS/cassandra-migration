@@ -106,7 +106,7 @@ public class ResolvedMigration {
     }
 
     /**
-     * @param type The type of migration (INIT, SQL, ...)
+     * @param type The type of migration (INIT, CQL, ...)
      */
     public void setType(MigrationType type) {
         this.type = type;

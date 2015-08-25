@@ -37,7 +37,7 @@ public class CqlScript {
     private static final Log LOG = LogFactory.getLog(CqlScript.class);
 
     /**
-     * The sql statements contained in this script.
+     * The cql statements contained in this script.
      */
     private final List<String> cqlStatements;
 
@@ -47,9 +47,9 @@ public class CqlScript {
     private final Resource resource;
 
     /**
-     * Creates a new sql script from this source.
+     * Creates a new cql script from this source.
      *
-     * @param cqlScriptSource The sql script as a text block with all placeholders already replaced.
+     * @param cqlScriptSource The cql script as a text block with all placeholders already replaced.
      */
     public CqlScript(String cqlScriptSource) {
         this.cqlStatements = parse(cqlScriptSource);
@@ -57,7 +57,7 @@ public class CqlScript {
     }
 
     /**
-     * Creates a new sql script from this resource.
+     * Creates a new cql script from this resource.
      *
      * @param cqlScriptResource The resource containing the statements.
      * @param encoding          The encoding to use.

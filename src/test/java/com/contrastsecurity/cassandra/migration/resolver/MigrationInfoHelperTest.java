@@ -95,7 +95,7 @@ public class MigrationInfoHelperTest {
 
     @Test(expected = CassandraMigrationException.class)
     public void extractSchemaVersionWithLeadingUnderscoreAndPrefix() {
-        MigrationInfoHelper.extractVersionAndDescription("V_8_0__Description.sql", "V", "__", ".cql");
+        MigrationInfoHelper.extractVersionAndDescription("V_8_0__Description.cql", "V", "__", ".cql");
     }
 
     @Test

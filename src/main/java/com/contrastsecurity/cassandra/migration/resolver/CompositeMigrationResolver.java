@@ -45,7 +45,7 @@ public class CompositeMigrationResolver implements MigrationResolver {
      *
      * @param classLoader              The ClassLoader for loading migrations on the classpath.
      * @param locations                The locations where migrations are located.
-     * @param encoding                 The encoding of Sql migrations.
+     * @param encoding                 The encoding of Cql migrations.
      * @param customMigrationResolvers Custom Migration Resolvers.
      */
     public CompositeMigrationResolver(ClassLoader classLoader, ScriptsLocations locations,
@@ -60,7 +60,7 @@ public class CompositeMigrationResolver implements MigrationResolver {
     }
 
     /**
-     * Finds all available migrations using all migration resolvers (sql, java, ...).
+     * Finds all available migrations using all migration resolvers (cql, java, ...).
      *
      * @return The available migrations, sorted by version, oldest first. An empty list is returned when no migrations
      * can be found.
@@ -75,7 +75,7 @@ public class CompositeMigrationResolver implements MigrationResolver {
     }
 
     /**
-     * Finds all available migrations using all migration resolvers (sql, java, ...).
+     * Finds all available migrations using all migration resolvers (cql, java, ...).
      *
      * @return The available migrations, sorted by version, oldest first. An empty list is returned when no migrations
      * can be found.
