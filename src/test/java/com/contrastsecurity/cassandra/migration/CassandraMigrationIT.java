@@ -4,6 +4,7 @@ import com.contrastsecurity.cassandra.migration.info.MigrationInfo;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoDumper;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import org.junit.Test;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class CassandraMigrationIT extends BaseIT {
                         " migrate";
         ProcessBuilder builder;
         if(isWindows()) {
-            builder = new ProcessBuilder("cmd.exe", "/C", shell);
+            throw new NotImplementedException();
         } else {
             builder = new ProcessBuilder("bash", "-c", shell);
         }
