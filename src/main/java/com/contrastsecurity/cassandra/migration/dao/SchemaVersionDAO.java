@@ -114,8 +114,9 @@ public class SchemaVersionDAO {
         ResultSet results = session.execute(select);
         for (Row row : results) {
             /*
-             * can't do this in bulk b/c increment is not supported unless the data type is
+             * can't do this in a single statement b/c increment is not supported unless the data type is
              * counter and you can not use gte on counter columns
+             * TODO: do this as a Java Driver's batch statement
              */
             Update update = QueryBuilder
                     .update(keyspace.getName(), tableName);
