@@ -16,3 +16,9 @@ CREATE TABLE messages (
   last_name text,
   email_address text
 );
+
+INSERT INTO contents (id, title, message) VALUES (1, 'foo', 'bar');
+
+UPDATE contents SET message = 'meh' WHERE id = 1;
+
+SELECT * from messages;
