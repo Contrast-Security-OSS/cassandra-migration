@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.contrastsecurity.cassandra.migration.api.migration;
+package com.contrastsecurity.cassandra.migration.api;
 
 /**
  * Migration implementors that also implement this interface will be able to specify their checksum (for

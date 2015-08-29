@@ -15,7 +15,7 @@
  */
 package com.contrastsecurity.cassandra.migration.resolver.java.dummy;
 
-import com.contrastsecurity.cassandra.migration.api.migration.java.JavaMigration;
+import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.Session;
 
 /**

@@ -8,5 +8,3 @@ CREATE TABLE test1 (
 INSERT INTO test1 (space, key, value) VALUES ('foo', 'blah', 'meh');
 
 UPDATE test1 SET value = 'profit!' WHERE space = 'foo' AND key = 'blah';
-
-SELECT * from test1;

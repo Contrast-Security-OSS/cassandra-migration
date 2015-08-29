@@ -71,4 +71,8 @@ public abstract class BaseIT {
         session = cluster.connect();
         return session;
     }
+
+    protected Session getSession() {
+        return session;
+    }
 }

@@ -1,7 +1,7 @@
 package com.contrastsecurity.cassandra.migration.resolver.java;
 
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
-import com.contrastsecurity.cassandra.migration.api.migration.java.JavaMigration;
+import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.datastax.driver.core.Session;
 

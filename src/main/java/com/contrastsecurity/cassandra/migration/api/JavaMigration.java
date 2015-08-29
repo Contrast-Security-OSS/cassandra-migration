@@ -1,4 +1,4 @@
-package com.contrastsecurity.cassandra.migration.api.migration.java;
+package com.contrastsecurity.cassandra.migration.api;
 
 import com.datastax.driver.core.Session;
 
