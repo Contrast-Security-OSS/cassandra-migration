@@ -29,8 +29,37 @@ cassandra@cqlsh:cassandra_migration_test> select * from cassandra_migration_vers
 ```
 
 ## Supported Migration Script Types
-* .cql files
-* Java classes
+### .cql files
+Example:
+```
+CREATE TABLE test1 (
+  space text,
+  key text,
+  value text,
+  PRIMARY KEY (space, key)
+) with CLUSTERING ORDER BY (key ASC);
+
+INSERT INTO test1 (space, key, value) VALUES ('foo', 'blah', 'meh');
+
+UPDATE test1 SET value = 'profit!' WHERE space = 'foo' AND key = 'blah';
+```
+
+### Java classes
+Example:
+```
+public class V3_0__Third implements JavaMigration {
+
+    @Override
+    public void migrate(Session session) throws Exception {
+        Insert insert = QueryBuilder.insertInto("test1");
+        insert.value("space", "web");
+        insert.value("key", "google");
+        insert.value("value", "google.com");
+
+        session.execute(insert);
+    }
+}
+```
 
 ## Interface
 ### Java API
