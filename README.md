@@ -1,7 +1,8 @@
 Cassandra Migration
 ========
 
-A migration tool for Apache Cassandra with CQL based on [Axel Fontaine's Flyway project](https://github.com/flyway/flyway).
+A simple and lightweight migration tool for Apache Cassandra database that's based on [Axel Fontaine's Flyway project](https://github.com/flyway/flyway).
+Cassandra Migration works just like Flyway. Plain CQL and Java based migrations are supported. The Java migration interface provides DataStax's Java Driver session.
 
 ## Why not create an extension to an existing popular database migration project (i.e. Flyway)?
 Popular database migration tools, such as Flyway and Liquibase are tailored for relational databases with JDBC. This project exists because...
@@ -15,17 +16,18 @@ Popular database migration tools, such as Flyway and Liquibase are tailored for 
 * I already use Flyway and I do not want to maintain my own version of Flyway with Cassandra hacks
 
 ## Requirements
-* Cassandra (Tested with version Apache Cassandra 2.1.5)
-* JDK (Tested on JDK 7+)
+* Java (Tested with JDK 7+)
+* Apache Cassandra (Tested with 2.1.5+)
 * Pre-populated keyspace
 
 ## Migration version table
 ```
 cassandra@cqlsh:cassandra_migration_test> select * from cassandra_migration_version;
- type | version_rank | checksum   | description | execution_time | installed_by | installed_on             | installed_rank | script             | success | version
-------+--------------+------------+-------------+----------------+--------------+--------------------------+----------------+--------------------+---------+---------
-  CQL |            1 | -868607833 |       First |             98 |    cassandra | 2015-08-24 15:34:15-0400 |              1 |  V1_0_0__First.cql |    True |   1.0.0
-  CQL |            2 |  564832622 |      Second |            172 |    cassandra | 2015-08-24 15:34:16-0400 |              2 | V2_0_0__Second.cql |    True |   2.0.0
+ type        | version_rank | checksum   | description | execution_time | installed_by | installed_on             | installed_rank | script                      | success | version
+-------------+--------------+------------+-------------+----------------+--------------+--------------------------+----------------+-----------------------------+---------+---------
+         CQL |            1 |  985950023 |       First |            100 |    cassandra | 2015-08-29 21:26:10-0400 |              1 |           V1_0_0__First.cql |    True |   1.0.0
+         CQL |            2 | 1899485431 |      Second |            144 |    cassandra | 2015-08-29 21:26:11-0400 |              2 |          V2_0_0__Second.cql |    True |   2.0.0
+ JAVA_DRIVER |            3 |       null |       Third |              2 |    cassandra | 2015-08-29 21:26:11-0400 |              3 | migration.integ.V3_0__Third |    True |     3.0
 ```
 
 ## Supported Migration Script Types
