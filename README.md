@@ -2,7 +2,8 @@ Cassandra Migration
 ========
 
 A simple and lightweight migration tool for Apache Cassandra database that's based on [Axel Fontaine's Flyway project](https://github.com/flyway/flyway).
-Cassandra Migration works just like Flyway. Plain CQL and Java based migrations are supported. The Java migration interface provides DataStax's Java Driver session.
+Cassandra Migration works just like Flyway. Plain CQL and Java based migrations are supported.
+The Java migration interface provides [DataStax's Java Driver](http://datastax.github.io/java-driver/) session.
 
 ## Why not create an extension to an existing popular database migration project (i.e. Flyway)?
 Popular database migration tools, such as Flyway and Liquibase are tailored for relational databases with JDBC. This project exists because...
