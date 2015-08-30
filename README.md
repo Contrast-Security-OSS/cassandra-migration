@@ -123,3 +123,4 @@ Keyspace
 
 ## Limitations
 * Baselining not supported yet
+* The tool does not roll back the database upon migration failure. You're expected to manually restore backup.
