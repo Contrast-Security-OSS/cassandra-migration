@@ -20,6 +20,14 @@ Popular database migration tools, such as Flyway and Liquibase are tailored for 
 * Java (Tested with JDK 7+)
 * Apache Cassandra (Tested with 2.1.5+)
 * Pre-populated keyspace
+* Cassandra Migration library
+```
+<dependency>
+    <groupId>com.contrastsecurity</groupId>
+    <artifactId>cassandra-migration</artifactId>
+    <version>0.2</version>
+</dependency>
+```
 
 ## Migration version table
 ```
