@@ -154,10 +154,18 @@ public class CassandraMigration {
 
             result = action.execute(session);
         } finally {
-            if (null != session)
-                session.close();
-            if (null != cluster)
-                cluster.close();
+            if (null != session && !session.isClosed())
+                try {
+                    session.close();
+                } catch(Exception e) {
+                    LOG.warn("Error closing Cassandra session");
+                }
+            if (null != cluster && !cluster.isClosed())
+                try {
+                    cluster.close();
+                } catch(Exception e) {
+                    LOG.warn("Error closing Cassandra cluster");
+                }
         }
         return result;
     }
