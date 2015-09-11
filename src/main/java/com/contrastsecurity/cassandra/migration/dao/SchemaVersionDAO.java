@@ -60,8 +60,8 @@ public class SchemaVersionDAO {
         session.execute(statement);
 
         statement = new SimpleStatement(
-                "CREATE INDEX IF NOT EXISTS " + keyspace.getName() + "." + tableName + "_version_rank" +
-                        " ON " + tableName + " (version_rank)");
+                "CREATE INDEX IF NOT EXISTS " + keyspace.getName() + "." + tableName + "_version" +
+                        " ON " + tableName + " (version)");
         session.executeAsync(statement);
 
         statement = new SimpleStatement(
