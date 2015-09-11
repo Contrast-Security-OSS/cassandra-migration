@@ -33,8 +33,19 @@ public class CassandraMigrationIT extends BaseIT {
         MigrationInfoService infoService = cm.info();
         System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
         for (MigrationInfo info : infoService.all()) {
-            assertThat(info.getVersion().getVersion(), anyOf(is("1.0.0"), is("2.0.0"), is("3.0")));
-            if (info.getVersion().equals("3.0")) {
+            assertThat(info.getVersion().getVersion(), anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1")));
+            if (info.getVersion().equals("3.0.1")) {
+                assertThat(info.getDescription(), is("Three point zero one"));
+                assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
+                assertThat(info.getScript().contains(".java"), is(true));
+
+                Select select = QueryBuilder.select()
+                        .column("value")
+                        .from("test1");
+                select.where(eq("space", "web")).and(eq("key", "facebook"));
+                ResultSet result = getSession().execute(select);
+                assertThat(result.one().getString("value"), is("facebook.com"));
+            } else if (info.getVersion().equals("3.0")) {
                 assertThat(info.getDescription(), is("Third"));
                 assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
                 assertThat(info.getScript().contains(".java"), is(true));
