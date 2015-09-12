@@ -24,7 +24,6 @@ public class CassandraMigrationIT extends BaseIT {
     @Test
     public void runApiTest() {
         String[] scriptsLocations = {"migration/integ"};
-
         CassandraMigration cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(scriptsLocations);
         cm.setKeyspace(getKeyspace());
@@ -32,6 +31,7 @@ public class CassandraMigrationIT extends BaseIT {
 
         MigrationInfoService infoService = cm.info();
         System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
+        assertThat(infoService.all().length, is(4));
         for (MigrationInfo info : infoService.all()) {
             assertThat(info.getVersion().getVersion(), anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1")));
             if (info.getVersion().equals("3.0.1")) {
@@ -84,6 +84,74 @@ public class CassandraMigrationIT extends BaseIT {
 
             assertThat(info.getState().isApplied(), is(true));
             assertThat(info.getInstalledOn(), notNullValue());
+        }
+
+        // test out of order when out of order is not allowed
+        String[] outOfOrderScriptsLocations = {"migration/outoforder"};
+        cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(outOfOrderScriptsLocations);
+        cm.setKeyspace(getKeyspace());
+        cm.migrate();
+
+        infoService = cm.info();
+        System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
+        assertThat(infoService.all().length, is(5));
+        for (MigrationInfo info : infoService.all()) {
+            assertThat(info.getVersion().getVersion(),
+                    anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1"), is("1.1.1")));
+            if (info.getVersion().equals("1.1.1")) {
+                assertThat(info.getDescription(), is("Late arrival"));
+                assertThat(info.getType().name(), is(MigrationType.CQL.name()));
+                assertThat(info.getScript().contains(".cql"), is(true));
+                assertThat(info.getState().isApplied(), is(false));
+                assertThat(info.getInstalledOn(), nullValue());
+            }
+        }
+
+        // test out of order when out of order is allowed
+        String[] outOfOrder2ScriptsLocations = {"migration/outoforder2"};
+        cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(outOfOrder2ScriptsLocations);
+        cm.getConfigs().setAllowOutOfOrder(true);
+        cm.setKeyspace(getKeyspace());
+        cm.migrate();
+
+        infoService = cm.info();
+        System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
+        assertThat(infoService.all().length, is(5));
+        for (MigrationInfo info : infoService.all()) {
+            assertThat(info.getVersion().getVersion(),
+                    anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1"), is("1.1.1"), is("1.1.2")));
+            if (info.getVersion().equals("1.1.2")) {
+                assertThat(info.getDescription(), is("Late arrival2"));
+                assertThat(info.getType().name(), is(MigrationType.CQL.name()));
+                assertThat(info.getScript().contains(".cql"), is(true));
+                assertThat(info.getState().isApplied(), is(true));
+                assertThat(info.getInstalledOn(), notNullValue());
+            }
+        }
+
+        // test out of order when out of order is allowed again
+        String[] outOfOrder3ScriptsLocations = {"migration/outoforder3"};
+        cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(outOfOrder3ScriptsLocations);
+        cm.getConfigs().setAllowOutOfOrder(true);
+        cm.setKeyspace(getKeyspace());
+        cm.migrate();
+
+        infoService = cm.info();
+        System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
+        assertThat(infoService.all().length, is(6));
+        for (MigrationInfo info : infoService.all()) {
+            assertThat(info.getVersion().getVersion(),
+                    anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1"), is("1.1.1"), is("1.1.2"), is("1.1.3")));
+            if (info.getVersion().equals("1.1.3")) {
+                assertThat(info.getDescription(), is("Late arrival3"));
+                assertThat(info.getType().name(), is(MigrationType.CQL.name()));
+                assertThat(info.getScript().contains(".cql"), is(true));
+                assertThat(info.getState().isApplied(), is(true));
+                assertThat(info.getInstalledOn(), notNullValue());
+            }
         }
     }
 

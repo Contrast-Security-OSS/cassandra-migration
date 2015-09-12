@@ -5,7 +5,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 
-public class V3_0_1__Three_point_zero_one implements JavaMigration {
+public class V3_0_1__Three_zero_one implements JavaMigration {
     @Override
     public void migrate(Session session) throws Exception {
         Insert insert = QueryBuilder.insertInto("test1");

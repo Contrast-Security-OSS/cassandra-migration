@@ -45,7 +45,7 @@ public class CompositeMigrationResolverTest {
 
         assertEquals(3, migrations.size());
         assertEquals("First", migrationList.get(0).getDescription());
-        assertEquals("Late arrivals", migrationList.get(1).getDescription());
+        assertEquals("Late arrival", migrationList.get(1).getDescription());
         assertEquals("Add contents table", migrationList.get(2).getDescription());
     }
 

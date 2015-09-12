@@ -70,7 +70,9 @@ public class CassandraMigration {
 
                 MigrationResolver migrationResolver = createMigrationResolver();
                 SchemaVersionDAO schemaVersionDAO = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
-                Migrate migrate = new Migrate(migrationResolver, configs.getTarget(), schemaVersionDAO, session, keyspace.getCluster().getUsername());
+                Migrate migrate = new Migrate(migrationResolver, configs.getTarget(), schemaVersionDAO, session,
+                        keyspace.getCluster().getUsername(), configs.isAllowOutOfOrder());
+
                 return migrate.run();
             }
         });

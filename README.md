@@ -25,18 +25,21 @@ Popular database migration tools, such as Flyway and Liquibase are tailored for 
 <dependency>
     <groupId>com.contrastsecurity</groupId>
     <artifactId>cassandra-migration</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
 </dependency>
 ```
 
 ## Migration version table
 ```
 cassandra@cqlsh:cassandra_migration_test> select * from cassandra_migration_version;
- type        | version_rank | checksum   | description | execution_time | installed_by | installed_on             | installed_rank | script                      | success | version
--------------+--------------+------------+-------------+----------------+--------------+--------------------------+----------------+-----------------------------+---------+---------
-         CQL |            1 |  985950023 |       First |            100 |    cassandra | 2015-08-29 21:26:10-0400 |              1 |           V1_0_0__First.cql |    True |   1.0.0
-         CQL |            2 | 1899485431 |      Second |            144 |    cassandra | 2015-08-29 21:26:11-0400 |              2 |          V2_0_0__Second.cql |    True |   2.0.0
- JAVA_DRIVER |            3 |       null |       Third |              2 |    cassandra | 2015-08-29 21:26:11-0400 |              3 | migration.integ.V3_0__Third |    True |     3.0
+ type        | version | checksum    | description    | execution_time | installed_by | installed_on             | installed_rank | script                                 | success | version_rank
+-------------+---------+-------------+----------------+----------------+--------------+--------------------------+----------------+----------------------------------------+---------+--------------
+         CQL |   1.0.0 |   985950023 |          First |             88 |    cassandra | 2015-09-12 15:10:22-0400 |              1 |                      V1_0_0__First.cql |    True |            1
+         CQL |   1.1.2 |  2095193138 |  Late arrival2 |              3 |    cassandra | 2015-09-12 15:10:23-0400 |              5 |              V1_1_2__Late_arrival2.cql |    True |            2
+         CQL |   1.1.3 | -1648933960 |  Late arrival3 |             15 |    cassandra | 2015-09-12 15:10:23-0400 |              6 |              V1_1_3__Late_arrival3.cql |    True |            3
+         CQL |   2.0.0 |  1899485431 |         Second |            154 |    cassandra | 2015-09-12 15:10:22-0400 |              2 |                     V2_0_0__Second.cql |    True |            4
+ JAVA_DRIVER |     3.0 |        null |          Third |              3 |    cassandra | 2015-09-12 15:10:22-0400 |              3 |            migration.integ.V3_0__Third |    True |            5
+ JAVA_DRIVER |   3.0.1 |        null | Three zero one |              2 |    cassandra | 2015-09-12 15:10:22-0400 |              4 | migration.integ.V3_0_1__Three_zero_one |    True |            6
 ```
 
 ## Supported Migration Script Types
@@ -114,6 +117,7 @@ Options can be set either programmatically with API or via VM options.
 Migration
 * cassandra.migration.scripts.locations: Locations of the migration scripts in CSV format. Scripts are scanned in the specified folder recursively. (default=db/migration)
 * cassandra.migration.scripts.encoding: The encoding of CQL scripts (default=UTF-8)
+* cassandra.migration.scripts.allowoutoforder: Allow out of order migration (default=false)
 * cassandra.migration.version.target: The target version. Migrations with a higher version number will be ignored. (default=latest)
 
 Cluster

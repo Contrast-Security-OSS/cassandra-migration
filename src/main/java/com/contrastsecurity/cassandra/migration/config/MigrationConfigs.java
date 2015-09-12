@@ -7,6 +7,7 @@ public class MigrationConfigs {
     public enum MigrationProperty {
         SCRIPTS_ENCODING("cassandra.migration.scripts.encoding", "Encoding for CQL scripts"),
         SCRIPTS_LOCATIONS("cassandra.migration.scripts.locations", "Locations of the migration scripts in CSV format"),
+        ALLOW_OUTOFORDER("cassandra.migration.scripts.allowoutoforder", "Allow out of order migration"),
         TARGET_VERSION("cassandra.migration.version.target", "The target version. Migrations with a higher version number will be ignored.");
 
         private String name;
@@ -39,6 +40,11 @@ public class MigrationConfigs {
         if (locationsProp != null && locationsProp.trim().length() != 0) {
             scriptsLocations = StringUtils.tokenizeToStringArray(locationsProp, ",");
         }
+
+        String allowOutOfOrderProp = System.getProperty(MigrationProperty.ALLOW_OUTOFORDER.getName());
+        if(allowOutOfOrderProp != null && allowOutOfOrderProp.trim().length() != 0) {
+            setAllowOutOfOrder(allowOutOfOrderProp);
+        }
     }
 
     /**
@@ -50,6 +56,11 @@ public class MigrationConfigs {
      * Locations of the migration scripts in CSV format (default: db/migration)
      */
     private String[] scriptsLocations = {"db/migration"};
+
+    /**
+     * Allow out of order migrations (default: false)
+     */
+    private boolean allowOutOfOrder = false;
 
     /**
      * The target version. Migrations with a higher version number will be ignored. (default: the latest version)
@@ -70,6 +81,18 @@ public class MigrationConfigs {
 
     public void setScriptsLocations(String[] scriptsLocations) {
         this.scriptsLocations = scriptsLocations;
+    }
+
+    public boolean isAllowOutOfOrder() {
+        return allowOutOfOrder;
+    }
+
+    public void setAllowOutOfOrder(String allowOutOfOrder) {
+        this.allowOutOfOrder = Boolean.parseBoolean(allowOutOfOrder);
+    }
+
+    public void setAllowOutOfOrder(boolean allowOutOfOrder) {
+        this.allowOutOfOrder = allowOutOfOrder;
     }
 
     public MigrationVersion getTarget() {

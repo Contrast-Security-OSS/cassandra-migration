@@ -19,13 +19,16 @@ public class Migrate {
     private final MigrationResolver migrationResolver;
     private final Session session;
     private final String user;
+    private final boolean allowOutOfOrder;
 
-    public Migrate(MigrationResolver migrationResolver, MigrationVersion target, SchemaVersionDAO schemaVersionDAO, Session session, String user) {
+    public Migrate(MigrationResolver migrationResolver, MigrationVersion target, SchemaVersionDAO schemaVersionDAO,
+                   Session session, String user, boolean allowOutOfOrder) {
         this.migrationResolver = migrationResolver;
         this.schemaVersionDAO = schemaVersionDAO;
         this.session = session;
         this.target = target;
         this.user = user;
+        this.allowOutOfOrder = allowOutOfOrder;
     }
 
     public int run() {
@@ -36,7 +39,7 @@ public class Migrate {
         while (true) {
             final boolean firstRun = migrationSuccessCount == 0;
 
-            MigrationInfoService infoService = new MigrationInfoService(migrationResolver, schemaVersionDAO, target, false, true);
+            MigrationInfoService infoService = new MigrationInfoService(migrationResolver, schemaVersionDAO, target, allowOutOfOrder, true);
             infoService.refresh();
 
             MigrationVersion currentSchemaVersion = MigrationVersion.EMPTY;

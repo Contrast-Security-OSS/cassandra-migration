@@ -54,7 +54,7 @@ public class SchemaVersionDAO {
                         "  installed_on timestamp," +
                         "  execution_time int," +
                         "  success boolean," +
-                        "  PRIMARY KEY (type, version_rank)" +
+                        "  PRIMARY KEY (type, version)" +
                         ")");
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
         session.execute(statement);
@@ -104,28 +104,6 @@ public class SchemaVersionDAO {
         MigrationVersion version = appliedMigration.getVersion();
 
         int versionRank = calculateVersionRank(version);
-
-        Select select = QueryBuilder
-                .select("version", "version_rank")
-                .from(keyspace.getName(), tableName);
-        select.where(gte("version_rank", versionRank));
-        select.allowFiltering();
-        select.setConsistencyLevel(ConsistencyLevel.ALL);
-        ResultSet results = session.execute(select);
-        for (Row row : results) {
-            /*
-             * can't do this in a single statement b/c increment is not supported unless the data type is
-             * counter and you can not use gte on counter columns
-             * TODO: do this as a Java Driver's batch statement
-             */
-            Update update = QueryBuilder
-                    .update(keyspace.getName(), tableName);
-            update.with(set("version_rank", row.getInt("version_rank") + 1));
-            update.where(eq("version", row.getString("version")));
-            update.setConsistencyLevel(ConsistencyLevel.ALL);
-            session.execute(update);
-        }
-
         PreparedStatement statement = session.prepare(
                 "INSERT INTO " + keyspace.getName() + "." + tableName +
                         " (version_rank, installed_rank, version, description, type, script, checksum, installed_on," +
@@ -218,7 +196,25 @@ public class SchemaVersionDAO {
         select.where(eq("name", "installed_rank"));
         select.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet result = session.execute(select);
-        return (int)result.one().getLong("count");
+        return (int) result.one().getLong("count");
+    }
+
+    class MigrationMetaHolder {
+        private int versionRank;
+        private MigrationType type;
+
+        public MigrationMetaHolder(int versionRank, String type) {
+            this.versionRank = versionRank;
+            this.type = MigrationType.valueOf(type);
+        }
+
+        public int getVersionRank() {
+            return versionRank;
+        }
+
+        public MigrationType getType() {
+            return type;
+        }
     }
 
     /**
@@ -230,20 +226,41 @@ public class SchemaVersionDAO {
     private int calculateVersionRank(MigrationVersion version) {
         Statement statement = QueryBuilder
                 .select()
+                .column("type")
                 .column("version")
+                .column("version_rank")
                 .from(keyspace.getName(), tableName);
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet versionRows = session.execute(statement);
 
         List<MigrationVersion> migrationVersions = new ArrayList<MigrationVersion>();
+        List<MigrationMetaHolder> migrationMetaHolders = new ArrayList<MigrationMetaHolder>();
         for (Row versionRow : versionRows) {
             migrationVersions.add(MigrationVersion.fromVersion(versionRow.getString("version")));
+            migrationMetaHolders.add(new MigrationMetaHolder(
+                    versionRow.getInt("version_rank"),
+                    versionRow.getString("type")
+            ));
         }
 
         Collections.sort(migrationVersions);
 
         for (int i = 0; i < migrationVersions.size(); i++) {
             if (version.compareTo(migrationVersions.get(i)) < 0) {
+                for (int z = i; z < migrationVersions.size(); z++) {
+                    /*
+                    * can't do this in a single statement b/c increment is not supported unless the data type is
+                    * counter and you can not use gte on counter columns
+                    * TODO: do this as a Java Driver's batch statement
+                    */
+                    Update update = QueryBuilder
+                            .update(keyspace.getName(), tableName);
+                    update.with(set("version_rank", migrationMetaHolders.get(z).getVersionRank() + 1));
+                    update.where(eq("type", migrationMetaHolders.get(z).getType().name()));
+                    update.where(eq("version", migrationVersions.get(z).getVersion()));
+                    update.setConsistencyLevel(ConsistencyLevel.ALL);
+                    session.execute(update);
+                }
                 return i + 1;
             }
         }
