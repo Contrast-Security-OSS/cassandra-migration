@@ -38,7 +38,7 @@ public class MigrationInfoDumper {
      * @param migrationInfos The list of migrationInfos to dump.
      * @return The ascii table, as one big multi-line string.
      */
-    public static String dumpToAsciiTable(MigrationInfo[] migrationInfos) {
+    public static String dumpToAsciiTable(final MigrationInfo[] migrationInfos) {
         int versionWidth = VERSION_TITLE.length();
         int descriptionWidth = DESCRIPTION_TITLE.length();
 

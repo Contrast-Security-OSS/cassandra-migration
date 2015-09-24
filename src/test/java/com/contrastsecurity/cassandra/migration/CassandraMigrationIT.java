@@ -23,13 +23,14 @@ public class CassandraMigrationIT extends BaseIT {
 
     @Test
     public void runApiTest() {
-        String[] scriptsLocations = {"migration/integ"};
+        String[] scriptsLocations = {"migration/integ", "migration/integ/java"};
         CassandraMigration cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(scriptsLocations);
         cm.setKeyspace(getKeyspace());
         cm.migrate();
 
         MigrationInfoService infoService = cm.info();
+        System.out.println("Initial migration");
         System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
         assertThat(infoService.all().length, is(4));
         for (MigrationInfo info : infoService.all()) {
@@ -87,13 +88,14 @@ public class CassandraMigrationIT extends BaseIT {
         }
 
         // test out of order when out of order is not allowed
-        String[] outOfOrderScriptsLocations = {"migration/outoforder"};
+        String[] outOfOrderScriptsLocations = {"migration/integ_outoforder", "migration/integ/java"};
         cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(outOfOrderScriptsLocations);
         cm.setKeyspace(getKeyspace());
         cm.migrate();
 
         infoService = cm.info();
+        System.out.println("Out of order migration with out-of-order ignored");
         System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
         assertThat(infoService.all().length, is(5));
         for (MigrationInfo info : infoService.all()) {
@@ -109,7 +111,7 @@ public class CassandraMigrationIT extends BaseIT {
         }
 
         // test out of order when out of order is allowed
-        String[] outOfOrder2ScriptsLocations = {"migration/outoforder2"};
+        String[] outOfOrder2ScriptsLocations = {"migration/integ_outoforder2", "migration/integ/java"};
         cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(outOfOrder2ScriptsLocations);
         cm.getConfigs().setAllowOutOfOrder(true);
@@ -117,8 +119,9 @@ public class CassandraMigrationIT extends BaseIT {
         cm.migrate();
 
         infoService = cm.info();
+        System.out.println("Out of order migration with out-of-order allowed");
         System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
-        assertThat(infoService.all().length, is(5));
+        assertThat(infoService.all().length, is(6));
         for (MigrationInfo info : infoService.all()) {
             assertThat(info.getVersion().getVersion(),
                     anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1"), is("1.1.1"), is("1.1.2")));
@@ -132,7 +135,7 @@ public class CassandraMigrationIT extends BaseIT {
         }
 
         // test out of order when out of order is allowed again
-        String[] outOfOrder3ScriptsLocations = {"migration/outoforder3"};
+        String[] outOfOrder3ScriptsLocations = {"migration/integ_outoforder3", "migration/integ/java"};
         cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(outOfOrder3ScriptsLocations);
         cm.getConfigs().setAllowOutOfOrder(true);
@@ -140,8 +143,9 @@ public class CassandraMigrationIT extends BaseIT {
         cm.migrate();
 
         infoService = cm.info();
+        System.out.println("Out of order migration with out-of-order allowed");
         System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
-        assertThat(infoService.all().length, is(6));
+        assertThat(infoService.all().length, is(7));
         for (MigrationInfo info : infoService.all()) {
             assertThat(info.getVersion().getVersion(),
                     anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1"), is("1.1.1"), is("1.1.2"), is("1.1.3")));
