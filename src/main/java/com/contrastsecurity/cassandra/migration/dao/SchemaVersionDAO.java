@@ -60,11 +60,6 @@ public class SchemaVersionDAO {
         session.execute(statement);
 
         statement = new SimpleStatement(
-                "CREATE INDEX IF NOT EXISTS " + keyspace.getName() + "." + tableName + "_version" +
-                        " ON " + tableName + " (version)");
-        session.executeAsync(statement);
-
-        statement = new SimpleStatement(
                 "CREATE TABLE IF NOT EXISTS " + keyspace.getName() + "." + tableName + COUNTS_TABLE_NAME_SUFFIX + " (" +
                         "  name text," +
                         "  count counter," +
