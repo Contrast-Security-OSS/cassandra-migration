@@ -211,7 +211,7 @@ public class MigrationInfoServiceTest {
      */
     private AppliedMigration createAppliedInitMigration(int version) {
         return new AppliedMigration(version, version, MigrationVersion.fromVersion(Integer.toString(version)), "abc",
-                MigrationType.INIT, "x", null, new Date(), "sa", 0, true);
+                MigrationType.BASELINE, "x", null, new Date(), "sa", 0, true);
     }
 
     /**

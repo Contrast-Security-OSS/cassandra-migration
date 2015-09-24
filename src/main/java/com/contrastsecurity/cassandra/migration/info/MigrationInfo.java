@@ -118,7 +118,7 @@ public class MigrationInfo implements Comparable<MigrationInfo> {
                 return MigrationState.SUCCESS;
             }
 
-            if ((MigrationType.BASELINE == appliedMigration.getType()) || (MigrationType.INIT == appliedMigration.getType())) {
+            if (MigrationType.BASELINE == appliedMigration.getType()) {
                 return MigrationState.BASELINE;
             }
 
@@ -168,8 +168,7 @@ public class MigrationInfo implements Comparable<MigrationInfo> {
         if (!context.pendingOrFuture
                 && (resolvedMigration == null)
                 && (appliedMigration.getType() != MigrationType.SCHEMA)
-                && (appliedMigration.getType() != MigrationType.BASELINE)
-                && (appliedMigration.getType() != MigrationType.INIT)) {
+                && (appliedMigration.getType() != MigrationType.BASELINE)) {
             return "Detected applied migration not resolved locally: " + getVersion();
         }
 
