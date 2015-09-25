@@ -9,14 +9,14 @@ import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
-import com.datastax.driver.core.querybuilder.Update;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 
 public class SchemaVersionDAO {
 
@@ -230,25 +230,25 @@ public class SchemaVersionDAO {
 
         Collections.sort(migrationVersions);
 
+        BatchStatement batchStatement = new BatchStatement();
+        PreparedStatement preparedStatement = session.prepare(
+                "UPDATE " + keyspace.getName() + "." + tableName +
+                        " SET version_rank = ?" +
+                        " WHERE version = ?;");
+
         for (int i = 0; i < migrationVersions.size(); i++) {
             if (version.compareTo(migrationVersions.get(i)) < 0) {
                 for (int z = i; z < migrationVersions.size(); z++) {
                     String migrationVersionStr = migrationVersions.get(z).getVersion();
-                    /*
-                    * can't do this in a single statement b/c increment is not supported unless the data type is
-                    * counter and you can not use gte on counter columns
-                    * TODO: do this as a batch
-                    */
-                    Update update = QueryBuilder
-                            .update(keyspace.getName(), tableName);
-                    update.with(set("version_rank", migrationMetaHolders.get(migrationVersionStr).getVersionRank() + 1));
-                    update.where(eq("version", migrationVersionStr));
-                    update.setConsistencyLevel(ConsistencyLevel.ALL);
-                    session.execute(update);
+                    batchStatement.add(preparedStatement.bind(
+                            migrationMetaHolders.get(migrationVersionStr).getVersionRank() + 1,
+                            migrationVersionStr));
+                    batchStatement.setConsistencyLevel(ConsistencyLevel.ALL);
                 }
                 return i + 1;
             }
         }
+        session.execute(batchStatement);
 
         return migrationVersions.size() + 1;
     }
