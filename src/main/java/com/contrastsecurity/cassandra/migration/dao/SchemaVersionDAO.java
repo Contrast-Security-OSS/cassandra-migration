@@ -13,6 +13,7 @@ import com.datastax.driver.core.querybuilder.Update;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
@@ -54,8 +55,8 @@ public class SchemaVersionDAO {
                         "  installed_on timestamp," +
                         "  execution_time int," +
                         "  success boolean," +
-                        "  PRIMARY KEY (type, version)" +
-                        ")");
+                        "  PRIMARY KEY (version)" +
+                        ");");
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
         session.execute(statement);
 
@@ -125,12 +126,11 @@ public class SchemaVersionDAO {
     /**
      * Retrieve the applied migrations from the metadata table.
      *
-     * @param migrationTypes The specific migration types to look for. (Optional) None means find all migrations.
      * @return The applied migrations.
      */
-    public List<AppliedMigration> findAppliedMigrations(MigrationType... migrationTypes) {
+    public List<AppliedMigration> findAppliedMigrations() {
         if (!tablesExist()) {
-            return new ArrayList<AppliedMigration>();
+            return new ArrayList<>();
         }
 
         Select select = QueryBuilder
@@ -147,12 +147,10 @@ public class SchemaVersionDAO {
                 .column("execution_time")
                 .column("success")
                 .from(keyspace.getName(), tableName);
-        if (migrationTypes.length > 0) {
-            select.where(in("type", migrationTypes));
-        }
+
         select.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet results = session.execute(select);
-        List<AppliedMigration> resultsList = new ArrayList<AppliedMigration>();
+        List<AppliedMigration> resultsList = new ArrayList<>();
         for (Row row : results) {
             resultsList.add(new AppliedMigration(
                     row.getInt("version_rank"),
@@ -196,19 +194,13 @@ public class SchemaVersionDAO {
 
     class MigrationMetaHolder {
         private int versionRank;
-        private MigrationType type;
 
-        public MigrationMetaHolder(int versionRank, String type) {
+        public MigrationMetaHolder(int versionRank) {
             this.versionRank = versionRank;
-            this.type = MigrationType.valueOf(type);
         }
 
         public int getVersionRank() {
             return versionRank;
-        }
-
-        public MigrationType getType() {
-            return type;
         }
     }
 
@@ -221,20 +213,18 @@ public class SchemaVersionDAO {
     private int calculateVersionRank(MigrationVersion version) {
         Statement statement = QueryBuilder
                 .select()
-                .column("type")
                 .column("version")
                 .column("version_rank")
                 .from(keyspace.getName(), tableName);
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet versionRows = session.execute(statement);
 
-        List<MigrationVersion> migrationVersions = new ArrayList<MigrationVersion>();
-        List<MigrationMetaHolder> migrationMetaHolders = new ArrayList<MigrationMetaHolder>();
+        List<MigrationVersion> migrationVersions = new ArrayList<>();
+        HashMap<String, MigrationMetaHolder> migrationMetaHolders = new HashMap<>();
         for (Row versionRow : versionRows) {
             migrationVersions.add(MigrationVersion.fromVersion(versionRow.getString("version")));
-            migrationMetaHolders.add(new MigrationMetaHolder(
-                    versionRow.getInt("version_rank"),
-                    versionRow.getString("type")
+            migrationMetaHolders.put(versionRow.getString("version"), new MigrationMetaHolder(
+                    versionRow.getInt("version_rank")
             ));
         }
 
@@ -243,16 +233,16 @@ public class SchemaVersionDAO {
         for (int i = 0; i < migrationVersions.size(); i++) {
             if (version.compareTo(migrationVersions.get(i)) < 0) {
                 for (int z = i; z < migrationVersions.size(); z++) {
+                    String migrationVersionStr = migrationVersions.get(z).getVersion();
                     /*
                     * can't do this in a single statement b/c increment is not supported unless the data type is
                     * counter and you can not use gte on counter columns
-                    * TODO: do this as a Java Driver's batch statement
+                    * TODO: do this as a batch
                     */
                     Update update = QueryBuilder
                             .update(keyspace.getName(), tableName);
-                    update.with(set("version_rank", migrationMetaHolders.get(z).getVersionRank() + 1));
-                    update.where(eq("type", migrationMetaHolders.get(z).getType().name()));
-                    update.where(eq("version", migrationVersions.get(z).getVersion()));
+                    update.with(set("version_rank", migrationMetaHolders.get(migrationVersionStr).getVersionRank() + 1));
+                    update.where(eq("version", migrationVersionStr));
                     update.setConsistencyLevel(ConsistencyLevel.ALL);
                     session.execute(update);
                 }
