@@ -36,6 +36,6 @@ public class VersionPrinter {
         }
         printed = true;
         String version = new ClassPathResource("version.txt", classLoader).loadAsString("UTF-8");
-        LOG.info("Cassandra Migraion " + version + " by Contrast Security");
+        LOG.info("Cassandra Migration " + version + " by Contrast Security");
     }
 }
