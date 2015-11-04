@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
@@ -165,7 +164,7 @@ public class SchemaVersionDAO {
                     MigrationType.valueOf(row.getString("type")),
                     row.getString("script"),
                     row.getInt("checksum"),
-                    row.getDate("installed_on"),
+                    row.getTimestamp("installed_on"),
                     row.getString("installed_by"),
                     row.getInt("execution_time"),
                     row.getBool("success")
