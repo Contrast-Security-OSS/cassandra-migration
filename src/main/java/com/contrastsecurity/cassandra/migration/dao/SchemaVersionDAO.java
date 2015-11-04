@@ -42,7 +42,7 @@ public class SchemaVersionDAO {
             return;
         }
 
-        Statement statement = new SimpleStatement(
+        Statement statement = session.newSimpleStatement(
                 "CREATE TABLE IF NOT EXISTS " + keyspace.getName() + "." + tableName + "(" +
                         "  version_rank int," +
                         "  installed_rank int," +
@@ -60,7 +60,7 @@ public class SchemaVersionDAO {
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
         session.execute(statement);
 
-        statement = new SimpleStatement(
+        statement = session.newSimpleStatement(
                 "CREATE TABLE IF NOT EXISTS " + keyspace.getName() + "." + tableName + COUNTS_TABLE_NAME_SUFFIX + " (" +
                         "  name text," +
                         "  count counter," +
@@ -74,7 +74,7 @@ public class SchemaVersionDAO {
         boolean schemaVersionTableExists = false;
         boolean schemaVersionCountsTableExists = false;
 
-        Statement statement = QueryBuilder
+        Statement statement = new QueryBuilder(session.getCluster())
                 .select()
                 .column("columnfamily_name")
                 .from("System", "schema_columnfamilies")
@@ -133,7 +133,7 @@ public class SchemaVersionDAO {
             return new ArrayList<>();
         }
 
-        Select select = QueryBuilder
+        Select select = new QueryBuilder(session.getCluster())
                 .select()
                 .column("version_rank")
                 .column("installed_rank")
@@ -160,7 +160,7 @@ public class SchemaVersionDAO {
                     MigrationType.valueOf(row.getString("type")),
                     row.getString("script"),
                     row.getInt("checksum"),
-                    row.getDate("installed_on"),
+                    row.getTimestamp("installed_on"),
                     row.getString("installed_by"),
                     row.getInt("execution_time"),
                     row.getBool("success")
@@ -178,12 +178,12 @@ public class SchemaVersionDAO {
      * @return The installed rank.
      */
     private int calculateInstalledRank() {
-        Statement statement = new SimpleStatement(
+        Statement statement = session.newSimpleStatement(
                 "UPDATE " + keyspace.getName() + "." + tableName + COUNTS_TABLE_NAME_SUFFIX +
                         " SET count = count + 1" +
                         "WHERE name = 'installed_rank';");
         session.execute(statement);
-        Select select = QueryBuilder
+        Select select = new QueryBuilder(session.getCluster())
                 .select("count")
                 .from(tableName + COUNTS_TABLE_NAME_SUFFIX);
         select.where(eq("name", "installed_rank"));
@@ -211,7 +211,7 @@ public class SchemaVersionDAO {
      * @return The rank.
      */
     private int calculateVersionRank(MigrationVersion version) {
-        Statement statement = QueryBuilder
+        Statement statement = new QueryBuilder(session.getCluster())
                 .select()
                 .column("version")
                 .column("version_rank")
