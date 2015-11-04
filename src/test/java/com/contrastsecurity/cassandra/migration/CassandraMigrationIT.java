@@ -40,7 +40,7 @@ public class CassandraMigrationIT extends BaseIT {
                 assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
                 assertThat(info.getScript().contains(".java"), is(true));
 
-                Select select = QueryBuilder.select()
+                Select select = new QueryBuilder(getSession().getCluster()).select()
                         .column("value")
                         .from("test1");
                 select.where(eq("space", "web")).and(eq("key", "facebook"));
@@ -51,7 +51,7 @@ public class CassandraMigrationIT extends BaseIT {
                 assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
                 assertThat(info.getScript().contains(".java"), is(true));
 
-                Select select = QueryBuilder.select()
+                Select select = new QueryBuilder(getSession().getCluster()).select()
                         .column("value")
                         .from("test1");
                 select.where(eq("space", "web")).and(eq("key", "google"));
@@ -62,7 +62,7 @@ public class CassandraMigrationIT extends BaseIT {
                 assertThat(info.getType().name(), is(MigrationType.CQL.name()));
                 assertThat(info.getScript().contains(".cql"), is(true));
 
-                Select select = QueryBuilder.select()
+                Select select = new QueryBuilder(getSession().getCluster()).select()
                         .column("title")
                         .column("message")
                         .from("contents");
@@ -75,7 +75,7 @@ public class CassandraMigrationIT extends BaseIT {
                 assertThat(info.getType().name(), is(MigrationType.CQL.name()));
                 assertThat(info.getScript().contains(".cql"), is(true));
 
-                Select select = QueryBuilder.select()
+                Select select = new QueryBuilder(getSession().getCluster()).select()
                         .column("value")
                         .from("test1");
                 select.where(eq("space", "foo")).and(eq("key", "bar"));
