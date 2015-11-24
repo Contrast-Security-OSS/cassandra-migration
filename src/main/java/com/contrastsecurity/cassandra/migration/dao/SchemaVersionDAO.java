@@ -6,6 +6,7 @@ import com.contrastsecurity.cassandra.migration.info.AppliedMigration;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import com.contrastsecurity.cassandra.migration.utils.CachePrepareStatement;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
@@ -26,11 +28,13 @@ public class SchemaVersionDAO {
     private Session session;
     private Keyspace keyspace;
     private String tableName;
+    private CachePrepareStatement cachePs;
 
     public SchemaVersionDAO(Session session, Keyspace keyspace, String tableName) {
         this.session = session;
         this.keyspace = keyspace;
         this.tableName = tableName;
+        this.cachePs = new CachePrepareStatement(session);
     }
 
     public Keyspace getKeyspace() {
@@ -100,13 +104,14 @@ public class SchemaVersionDAO {
         MigrationVersion version = appliedMigration.getVersion();
 
         int versionRank = calculateVersionRank(version);
-        PreparedStatement statement = session.prepare(
+        PreparedStatement statement = cachePs.prepare(
                 "INSERT INTO " + keyspace.getName() + "." + tableName +
                         " (version_rank, installed_rank, version, description, type, script, checksum, installed_on," +
                         "  installed_by, execution_time, success)" +
                         " VALUES" +
                         " (?, ?, ?, ?, ?, ?, ?, dateOf(now()), ?, ?, ?);"
         );
+
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
         session.execute(statement.bind(
                 versionRank,
@@ -231,7 +236,7 @@ public class SchemaVersionDAO {
         Collections.sort(migrationVersions);
 
         BatchStatement batchStatement = new BatchStatement();
-        PreparedStatement preparedStatement = session.prepare(
+        PreparedStatement preparedStatement = cachePs.prepare(
                 "UPDATE " + keyspace.getName() + "." + tableName +
                         " SET version_rank = ?" +
                         " WHERE version = ?;");
