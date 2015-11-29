@@ -25,7 +25,7 @@ Popular database migration tools, such as Flyway and Liquibase are tailored for 
 <dependency>
     <groupId>com.contrastsecurity</groupId>
     <artifactId>cassandra-migration</artifactId>
-    <version>0.5</version>
+    <version>0.6</version>
 </dependency>
 ```
 
