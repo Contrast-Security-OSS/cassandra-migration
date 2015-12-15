@@ -26,7 +26,6 @@ import com.datastax.driver.core.querybuilder.Select;
 
 public class CassandraMigrationIT extends BaseIT {
 
-	@Ignore
 	@Test
 	public void runApiTest() {
 		String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
@@ -190,7 +189,6 @@ public class CassandraMigrationIT extends BaseIT {
 	static boolean runCmdTestCompleted = false;
 	static boolean runCmdTestSuccess = false;
 
-	@Ignore
 	@Test
 	public void runCmdTest() throws IOException, InterruptedException {
 		String shell = "java -jar"
