@@ -98,6 +98,8 @@ public class JavaMigrationResolver implements MigrationResolver {
         if (javaMigration instanceof MigrationChecksumProvider) {
             MigrationChecksumProvider checksumProvider = (MigrationChecksumProvider) javaMigration;
             checksum = checksumProvider.getChecksum();
+        } else {
+        	checksum = 0;
         }
 
         MigrationVersion version;
