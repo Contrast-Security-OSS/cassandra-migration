@@ -271,18 +271,18 @@ public class SchemaVersionDAO {
         int cleanedTableCount = 0;
         List<String> tableList = new ArrayList<String>();
 
-        String strCQL = "select columnfamily_name from system.schema_columnfamilies where keyspace_name = '"+keyspace.getName()+"';";
+        String strCQL = "select columnfamily_name from system.schema_columnfamilies where keyspace_name = ? ;";
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
         PreparedStatement pStatement = session.prepare(strCQL);
         BoundStatement boundStatement = new BoundStatement(pStatement);
         boundStatement.bind(keyspace.getName());
 
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-
         ResultSet resultSet = session.execute(boundStatement);
 
         for (Row row : resultSet){
-            Statement statement = new SimpleStatement("DROP TABLE " +keyspace.getName() + "." + row.toString() );
+            Statement statement = new SimpleStatement("DROP TABLE " +keyspace.getName() + "." + row.getString(0) );
             statement.setConsistencyLevel(ConsistencyLevel.ALL);
             session.execute(statement);
             cleanedTableCount++;

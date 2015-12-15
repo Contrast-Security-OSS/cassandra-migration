@@ -8,6 +8,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
+import org.junit.Ignore;
 import org.junit.Test;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -165,11 +166,9 @@ public class CassandraMigrationIT extends BaseIT {
         CassandraMigration cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(scriptsLocations);
         cm.setKeyspace(getKeyspace());
-        final int migrateCount  = cm.migrate();
+        cm.migrate();
         int cleanedTablesCount = cm.clean();
-        System.out.println("migrateCount : "+migrateCount);
-        System.out.println("cleanedTablesCount : "+cleanedTablesCount);
-        assertThat(cleanedTablesCount, is(7700));
+        assertThat(cleanedTablesCount, is(5));
     }
 
     static boolean runCmdTestCompleted = false;
