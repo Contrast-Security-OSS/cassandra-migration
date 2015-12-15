@@ -12,6 +12,11 @@ import java.util.List;
 public class CommandLine {
     private static Log LOG;
 
+    /**
+     * command to trigger validate action
+     */
+    public static final String CLEAN = "clean";
+
     public static void main(String[] args) {
         ConsoleLog.Level logLevel = getLogLevel(args);
         initLogging(logLevel);
@@ -22,10 +27,15 @@ public class CommandLine {
             return;
         }
 
+        String operation = operations.get(0);
+
         CassandraMigration cm = new CassandraMigration();
         Keyspace ks = new Keyspace();
         cm.setKeyspace(ks);
-        cm.migrate();
+
+        if (CLEAN.equalsIgnoreCase(operation)) {
+            cm.clean();
+        }
     }
 
     private static List<String> determineOperations(String[] args) {
@@ -67,6 +77,8 @@ public class CommandLine {
         LOG.info("Commands");
         LOG.info("========");
         LOG.info("migrate  : Migrates the database");
+        LOG.info("");
+        LOG.info("clean : drops all the tables in a keyspace");
         LOG.info("");
         LOG.info("Add -X to print debug output");
         LOG.info("Add -q to suppress all output, except for errors and warnings");
