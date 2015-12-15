@@ -7,6 +7,7 @@ import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.utils.CachePrepareStatement;
+import com.contrastsecurity.cassandra.migration.utils.StopWatch;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
@@ -34,6 +35,12 @@ public class SchemaVersionDAO {
         this.session = session;
         this.keyspace = keyspace;
         this.tableName = tableName;
+        this.cachePs = new CachePrepareStatement(session);
+    }
+
+    public SchemaVersionDAO(Session session, Keyspace keyspace) {
+        this.session = session;
+        this.keyspace = keyspace;
         this.cachePs = new CachePrepareStatement(session);
     }
 
@@ -256,5 +263,31 @@ public class SchemaVersionDAO {
         session.execute(batchStatement);
 
         return migrationVersions.size() + 1;
+    }
+
+    //drops all tables in a keyspace
+    public int cleanTable() {
+
+        int cleanedTableCount = 0;
+        List<String> tableList = new ArrayList<String>();
+
+        String strCQL = "select columnfamily_name from system.schema_columnfamilies where keyspace_name = '"+keyspace.getName()+"';";
+        PreparedStatement pStatement = session.prepare(strCQL);
+        BoundStatement boundStatement = new BoundStatement(pStatement);
+        boundStatement.bind(keyspace.getName());
+
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        ResultSet resultSet = session.execute(boundStatement);
+
+        for (Row row : resultSet){
+            Statement statement = new SimpleStatement("DROP TABLE " +keyspace.getName() + "." + row.toString() );
+            statement.setConsistencyLevel(ConsistencyLevel.ALL);
+            session.execute(statement);
+            cleanedTableCount++;
+        }
+        stopWatch.stop();
+        return  cleanedTableCount;
     }
 }

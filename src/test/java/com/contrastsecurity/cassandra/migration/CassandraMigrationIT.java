@@ -159,6 +159,19 @@ public class CassandraMigrationIT extends BaseIT {
         }
     }
 
+    @Test
+    public void testClean(){
+        String[] scriptsLocations = {"migration/integ", "migration/integ/java"};
+        CassandraMigration cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(scriptsLocations);
+        cm.setKeyspace(getKeyspace());
+        final int migrateCount  = cm.migrate();
+        int cleanedTablesCount = cm.clean();
+        System.out.println("migrateCount : "+migrateCount);
+        System.out.println("cleanedTablesCount : "+cleanedTablesCount);
+        assertThat(cleanedTablesCount, is(7700));
+    }
+
     static boolean runCmdTestCompleted = false;
     static boolean runCmdTestSuccess = false;
 

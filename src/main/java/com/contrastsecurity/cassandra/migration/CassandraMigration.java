@@ -1,5 +1,6 @@
 package com.contrastsecurity.cassandra.migration;
 
+import com.contrastsecurity.cassandra.migration.action.Clean;
 import com.contrastsecurity.cassandra.migration.action.Initialize;
 import com.contrastsecurity.cassandra.migration.action.Migrate;
 import com.contrastsecurity.cassandra.migration.config.Keyspace;
@@ -172,6 +173,15 @@ public class CassandraMigration {
         return result;
     }
 
+
+    public int clean(){
+        return  execute(new Action<Integer>() {
+            @Override
+            public Integer execute(Session session) {
+                return new Clean().run(session, keyspace);
+            }
+        });
+    }
     interface Action<T> {
         T execute(Session session);
     }
