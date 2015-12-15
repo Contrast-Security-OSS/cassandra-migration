@@ -10,78 +10,99 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandLine {
-    private static Log LOG;
 
+	/**
+	 * command to trigger migrate action
+	 */
+	public static final String MIGRATE = "migrate";
+
+	/**
+	 * command to trigger validate action
+	 */
+	public static final String VALIDATE = "validate";
+    
     /**
      * command to trigger validate action
      */
     public static final String CLEAN = "clean";
 
-    public static void main(String[] args) {
-        ConsoleLog.Level logLevel = getLogLevel(args);
-        initLogging(logLevel);
+	/**
+	 * logging support
+	 */
+	private static Log LOG;
 
-        List<String> operations = determineOperations(args);
-        if (operations.isEmpty()) {
-            printUsage();
-            return;
-        }
+	/**
+	 * @param args
+	 *            command line arguments
+	 */
+	public static void main(String[] args) {
+		ConsoleLog.Level logLevel = getLogLevel(args);
+		initLogging(logLevel);
 
-        String operation = operations.get(0);
+		List<String> operations = determineOperations(args);
+		if (operations.isEmpty()) {
+			printUsage();
+			return;
+		}
 
-        CassandraMigration cm = new CassandraMigration();
-        Keyspace ks = new Keyspace();
-        cm.setKeyspace(ks);
+		String operation = operations.get(0);
 
-        if (CLEAN.equalsIgnoreCase(operation)) {
+		CassandraMigration cm = new CassandraMigration();
+		Keyspace ks = new Keyspace();
+		cm.setKeyspace(ks);
+		if (MIGRATE.equalsIgnoreCase(operation)) {
+			cm.migrate();
+		} else if (VALIDATE.equalsIgnoreCase(operation)) {
+			cm.validate();
+		}else if (CLEAN.equalsIgnoreCase(operation)) {
             cm.clean();
         }
-    }
+	}
 
-    private static List<String> determineOperations(String[] args) {
-        List<String> operations = new ArrayList<>();
+	private static List<String> determineOperations(String[] args) {
+		List<String> operations = new ArrayList<>();
 
-        for (String arg : args) {
-            if (!arg.startsWith("-")) {
-                operations.add(arg);
-            }
-        }
+		for (String arg : args) {
+			if (!arg.startsWith("-")) {
+				operations.add(arg);
+			}
+		}
 
-        return operations;
-    }
+		return operations;
+	}
 
-    static void initLogging(ConsoleLog.Level level) {
-        LogFactory.setLogCreator(new ConsoleLogCreator(level));
-        LOG = LogFactory.getLog(CommandLine.class);
-    }
+	static void initLogging(ConsoleLog.Level level) {
+		LogFactory.setLogCreator(new ConsoleLogCreator(level));
+		LOG = LogFactory.getLog(CommandLine.class);
+	}
 
-    private static ConsoleLog.Level getLogLevel(String[] args) {
-        for (String arg : args) {
-            if ("-X".equals(arg)) {
-                return ConsoleLog.Level.DEBUG;
-            }
-            if ("-q".equals(arg)) {
-                return ConsoleLog.Level.WARN;
-            }
-        }
-        return ConsoleLog.Level.INFO;
-    }
+	private static ConsoleLog.Level getLogLevel(String[] args) {
+		for (String arg : args) {
+			if ("-X".equals(arg)) {
+				return ConsoleLog.Level.DEBUG;
+			}
+			if ("-q".equals(arg)) {
+				return ConsoleLog.Level.WARN;
+			}
+		}
+		return ConsoleLog.Level.INFO;
+	}
 
-    private static void printUsage() {
-        LOG.info("********");
-        LOG.info("* Usage");
-        LOG.info("********");
-        LOG.info("");
-        LOG.info("cassandra-migration [options] command");
-        LOG.info("");
-        LOG.info("Commands");
-        LOG.info("========");
-        LOG.info("migrate  : Migrates the database");
-        LOG.info("");
+	private static void printUsage() {
+		LOG.info("********");
+		LOG.info("* Usage");
+		LOG.info("********");
+		LOG.info("");
+		LOG.info("cassandra-migration [options] command");
+		LOG.info("");
+		LOG.info("Commands");
+		LOG.info("========");
+		LOG.info("migrate  : Migrates the database");
+		LOG.info("validate : Validates the applied migrations against the available ones");
         LOG.info("clean : drops all the tables in a keyspace");
-        LOG.info("");
-        LOG.info("Add -X to print debug output");
-        LOG.info("Add -q to suppress all output, except for errors and warnings");
-        LOG.info("");
-    }
+		LOG.info("");
+		LOG.info("Add -X to print debug output");
+		LOG.info("Add -q to suppress all output, except for errors and warnings");
+		LOG.info("");
+	}
 }
