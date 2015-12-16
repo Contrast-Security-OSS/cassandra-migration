@@ -12,11 +12,8 @@ import com.datastax.driver.core.*;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.SQLException;
+import java.util.*;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
@@ -28,6 +25,7 @@ public class SchemaVersionDAO {
 
     private Session session;
     private Keyspace keyspace;
+
     private String tableName;
     private CachePrepareStatement cachePs;
 
@@ -46,6 +44,10 @@ public class SchemaVersionDAO {
 
     public Keyspace getKeyspace() {
         return this.keyspace;
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
     public void createTablesIfNotExist() {
@@ -185,6 +187,59 @@ public class SchemaVersionDAO {
     }
 
     /**
+     * Retrieve the applied migrations from the metadata table.
+     *
+     * @return The applied migrations.
+     */
+    public List<AppliedMigration> findAppliedMigrations(MigrationType... migrationTypes) {
+        if (!tablesExist()) {
+            return new ArrayList<>();
+        }
+
+        Select select = QueryBuilder
+                .select()
+                .column("version_rank")
+                .column("installed_rank")
+                .column("version")
+                .column("description")
+                .column("type")
+                .column("script")
+                .column("checksum")
+                .column("installed_on")
+                .column("installed_by")
+                .column("execution_time")
+                .column("success")
+                .from(keyspace.getName(), tableName);
+
+        select.setConsistencyLevel(ConsistencyLevel.ALL);
+        ResultSet results = session.execute(select);
+        List<AppliedMigration> resultsList = new ArrayList<>();
+        List<MigrationType> migTypeList = Arrays.asList(migrationTypes);
+        for (Row row : results) {
+            MigrationType migType = MigrationType.valueOf(row.getString("type"));
+            if(migTypeList.contains(migType)){
+                resultsList.add(new AppliedMigration(
+                        row.getInt("version_rank"),
+                        row.getInt("installed_rank"),
+                        MigrationVersion.fromVersion(row.getString("version")),
+                        row.getString("description"),
+                        migType,
+                        row.getString("script"),
+                        row.getInt("checksum"),
+                        row.getDate("installed_on"),
+                        row.getString("installed_by"),
+                        row.getInt("execution_time"),
+                        row.getBool("success")
+                ));
+            }
+        }
+
+        //order by version_rank not necessary here as it eventually gets saved in TreeMap that uses natural ordering
+
+        return resultsList;
+    }
+
+    /**
      * Calculates the installed rank for the new migration to be inserted.
      *
      * @return The installed rank.
@@ -289,5 +344,23 @@ public class SchemaVersionDAO {
         }
         stopWatch.stop();
         return  cleanedTableCount;
+    }
+
+    public AppliedMigration getBaselineMarker() {
+        List<AppliedMigration> appliedMigrations = findAppliedMigrations(MigrationType.BASELINE);
+        return appliedMigrations.isEmpty() ? null : appliedMigrations.get(0);
+    }
+
+    public boolean hasBaselineMarker() {
+        if (!tablesExist()) {
+            return false;
+        }
+        createTablesIfNotExist();
+        return !findAppliedMigrations(MigrationType.BASELINE).isEmpty();
+    }
+
+    public void addBaselineMarker(final MigrationVersion baselineVersion, final String baselineDescription) {
+        addAppliedMigration(new AppliedMigration(baselineVersion, baselineDescription, MigrationType.BASELINE, baselineDescription,0, null,
+                0, true));
     }
 }

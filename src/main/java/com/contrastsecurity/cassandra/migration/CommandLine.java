@@ -26,6 +26,11 @@ public class CommandLine {
      */
     public static final String CLEAN = "clean";
 
+    /**
+     * command to trigger validate action
+     */
+    public static final String BASELINE = "baseline";
+
 	/**
 	 * logging support
 	 */
@@ -56,6 +61,8 @@ public class CommandLine {
 			cm.validate();
 		}else if (CLEAN.equalsIgnoreCase(operation)) {
             cm.clean();
+        }else if(BASELINE.equalsIgnoreCase(operation)){
+            cm.baseline();
         }
 	}
 
@@ -99,7 +106,8 @@ public class CommandLine {
 		LOG.info("========");
 		LOG.info("migrate  : Migrates the database");
 		LOG.info("validate : Validates the applied migrations against the available ones");
-        LOG.info("clean : drops all the tables in a keyspace");
+        LOG.info("baseline : Baselines an existing database, excluding all migrations upto and including baselineVersion");
+        LOG.info("clean    : Drops all objects in the configured schemas");
 		LOG.info("");
 		LOG.info("Add -X to print debug output");
 		LOG.info("Add -q to suppress all output, except for errors and warnings");
