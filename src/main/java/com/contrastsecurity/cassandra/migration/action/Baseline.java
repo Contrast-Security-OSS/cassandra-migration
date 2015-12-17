@@ -28,6 +28,11 @@ public class Baseline {
 
     public void run() {
         AppliedMigration baselineMigration = schemaVersionDao.getBaselineMarker();
+
+        if (schemaVersionDao.hasAppliedMigrations()) {
+            throw new CassandraMigrationException("Unable to baseline metadata table " + schemaVersionDao.getTableName() + " as it already contains migrations");
+        }
+
         if(schemaVersionDao.hasBaselineMarker()){
             if(! baselineMigration.getVersion().equals(baselineVersion) ||
                     !baselineMigration.getDescription().equals(baselineDescription)){

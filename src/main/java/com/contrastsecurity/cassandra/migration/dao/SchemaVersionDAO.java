@@ -259,6 +259,21 @@ public class SchemaVersionDAO {
         return (int) result.one().getLong("count");
     }
 
+    public boolean hasAppliedMigrations() {
+        if (!tablesExist()) {
+            return false;
+        }
+        createTablesIfNotExist();
+        List<AppliedMigration> filteredMigrations = new ArrayList<>();
+        List<AppliedMigration> appliedMigrations = findAppliedMigrations();
+        for (AppliedMigration appliedMigration : appliedMigrations) {
+            if (!appliedMigration.getType().equals(MigrationType.BASELINE)) {
+                filteredMigrations.add(appliedMigration);
+            }
+        }
+        return !filteredMigrations.isEmpty();
+    }
+
     class MigrationMetaHolder {
         private int versionRank;
 
