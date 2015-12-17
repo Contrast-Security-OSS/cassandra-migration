@@ -26,7 +26,6 @@ import com.datastax.driver.core.querybuilder.Select;
 public class CassandraMigrationIT extends BaseIT {
 
 	@Test
-    @Ignore
 	public void runApiTest() {
 		String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
 		CassandraMigration cm = new CassandraMigration();
@@ -156,7 +155,6 @@ public class CassandraMigrationIT extends BaseIT {
 	}
 
 	@Test
-    @Ignore
 	public void testValidate() {
 		// apply migration scripts
 		String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
@@ -176,7 +174,7 @@ public class CassandraMigrationIT extends BaseIT {
 		cm.validate();
 
 		cm = new CassandraMigration();
-		cm.getConfigs().setScriptsLocations(new String[]{"migration/integ/java"});
+		cm.getConfigs().setScriptsLocations(new String[] { "migration/integ/java" });
 		cm.setKeyspace(getKeyspace());
 
 		try {
@@ -191,7 +189,6 @@ public class CassandraMigrationIT extends BaseIT {
 	static boolean runCmdTestSuccess = false;
 
 	@Test
-    @Ignore
 	public void runCmdTest() throws IOException, InterruptedException {
 		String shell = "java -jar"
 				+ " -Dcassandra.migration.scripts.locations=filesystem:target/test-classes/migration/integ"
@@ -218,21 +215,34 @@ public class CassandraMigrationIT extends BaseIT {
 		assertThat(runCmdTestSuccess, is(true));
 	}
 
-    @Test
-    @Ignore
-    public void testClean(){
-        String[] scriptsLocations = {"migration/integ", "migration/integ/java"};
-        CassandraMigration cm = new CassandraMigration();
-        cm.getConfigs().setScriptsLocations(scriptsLocations);
-        cm.setKeyspace(getKeyspace());
-        cm.migrate();
-        int cleanedTablesCount = cm.clean();
-        assertThat(cleanedTablesCount, is(5));
-    }
+	@Test
+	public void testClean() {
+		String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
+		CassandraMigration cm = new CassandraMigration();
+		cm.getConfigs().setScriptsLocations(scriptsLocations);
+		cm.setKeyspace(getKeyspace());
+		cm.migrate();
+		int cleanedTablesCount = cm.clean();
+		assertThat(cleanedTablesCount, is(5));
+	}
 
 	@Test
-	public void testBaseLine(){
-		String[] scriptsLocations = {"migration/integ", "migration/integ/java"};
+	public void testBaseline() {
+		String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
+		CassandraMigration cm = new CassandraMigration();
+		cm.getConfigs().setScriptsLocations(scriptsLocations);
+		cm.setKeyspace(getKeyspace());
+		cm.baseline();
+
+		SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(getSession(), getKeyspace(),
+				MigrationVersion.CURRENT.getTable());
+		AppliedMigration baselineMarker = schemaVersionDao.getBaselineMarker();
+		assertThat(baselineMarker.getVersion(), is(MigrationVersion.fromVersion("1")));
+	}
+
+	@Test(expected = CassandraMigrationException.class)
+	public void testBaseLineWithMigrations() {
+		String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
 		CassandraMigration cm = new CassandraMigration();
 		cm.getConfigs().setScriptsLocations(scriptsLocations);
 		cm.setKeyspace(getKeyspace());
@@ -243,9 +253,6 @@ public class CassandraMigrationIT extends BaseIT {
 		cm.setKeyspace(getKeyspace());
 		cm.baseline();
 
-        SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(getSession(), getKeyspace(), MigrationVersion.CURRENT.getTable());
-        AppliedMigration baselineMarker = schemaVersionDao.getBaselineMarker();
-        assertThat(baselineMarker.getVersion(), is(MigrationVersion.fromVersion("1")));
 	}
 
 	private static void watch(final Process process) {
