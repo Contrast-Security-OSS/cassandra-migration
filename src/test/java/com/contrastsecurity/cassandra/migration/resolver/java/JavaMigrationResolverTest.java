@@ -51,7 +51,7 @@ public class JavaMigrationResolverTest {
         ResolvedMigration migrationInfo = migrationList.get(0);
         assertEquals("2", migrationInfo.getVersion().toString());
         assertEquals("InterfaceBasedMigration", migrationInfo.getDescription());
-        assertNull(migrationInfo.getChecksum());
+        assertEquals(new Integer(0), migrationInfo.getChecksum());
 
         ResolvedMigration migrationInfo1 = migrationList.get(1);
         assertEquals("3.5", migrationInfo1.getVersion().toString());
@@ -68,7 +68,7 @@ public class JavaMigrationResolverTest {
         ResolvedMigration migrationInfo = jdbcMigrationResolver.extractMigrationInfo(new V2__InterfaceBasedMigration());
         assertEquals("2", migrationInfo.getVersion().toString());
         assertEquals("InterfaceBasedMigration", migrationInfo.getDescription());
-        assertNull(migrationInfo.getChecksum());
+        assertEquals(new Integer(0), migrationInfo.getChecksum());
     }
 
     @Test

@@ -1,7 +1,6 @@
 package com.contrastsecurity.cassandra.migration;
 
-import com.contrastsecurity.cassandra.migration.action.Initialize;
-import com.contrastsecurity.cassandra.migration.action.Migrate;
+import com.contrastsecurity.cassandra.migration.action.*;
 import com.contrastsecurity.cassandra.migration.config.Keyspace;
 import com.contrastsecurity.cassandra.migration.config.MigrationConfigs;
 import com.contrastsecurity.cassandra.migration.config.ScriptsLocations;
@@ -28,6 +27,8 @@ public class CassandraMigration {
     private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     private Keyspace keyspace;
     private MigrationConfigs configs;
+    private MigrationVersion baselineVersion = MigrationVersion.fromVersion("1");
+    private String baselineDescription = "<< Cassandra Baseline >>";
 
     public CassandraMigration() {
         this.keyspace = new Keyspace();
@@ -92,9 +93,33 @@ public class CassandraMigration {
         });
     }
 
+    public void validate() {
+    	String validationError = execute(new Action<String>() {
+    		@Override
+    		public String execute(Session session) {
+    			MigrationResolver migrationResolver = createMigrationResolver();
+    			SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
+    			Validate validate = new Validate(migrationResolver, schemaVersionDao, configs.getTarget(), true, false);
+    			return validate.run();
+    		}
+    	});
+    
+    	if (validationError != null) {
+    		throw new CassandraMigrationException("Validation failed. " + validationError);
+    	}
+    }
+    
     public void baseline() {
-        //TODO
-        throw new NotImplementedException();
+        execute(new Action<Void>() {
+            @Override
+            public Void execute(Session session) {
+                MigrationResolver migrationResolver = createMigrationResolver();
+                SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
+                Baseline baseLine = new Baseline(schemaVersionDao, migrationResolver, baselineVersion, baselineDescription );
+                baseLine.run();
+                return null;
+            }
+        });
     }
 
     private String getConnectionInfo(Metadata metadata) {
@@ -172,6 +197,15 @@ public class CassandraMigration {
         return result;
     }
 
+
+    public int clean(){
+        return  execute(new Action<Integer>() {
+            @Override
+            public Integer execute(Session session) {
+                return new Clean().run(session, keyspace);
+            }
+        });
+    }
     interface Action<T> {
         T execute(Session session);
     }
