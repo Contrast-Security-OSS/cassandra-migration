@@ -164,7 +164,7 @@ public class SchemaVersionDAO {
                     row.getString("description"),
                     MigrationType.valueOf(row.getString("type")),
                     row.getString("script"),
-                    row.getInt("checksum"),
+                    row.isNull("checksum") ? null : row.getInt("checksum"),
                     row.getDate("installed_on"),
                     row.getString("installed_by"),
                     row.getInt("execution_time"),
