@@ -1,20 +1,5 @@
 package com.contrastsecurity.cassandra.migration;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfo;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoDumper;
@@ -23,6 +8,16 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 public class CassandraMigrationIT extends BaseIT {
 
@@ -171,18 +166,15 @@ public class CassandraMigrationIT extends BaseIT {
 		cm = new CassandraMigration();
 		cm.getConfigs().setScriptsLocations(scriptsLocations);
 		cm.setKeyspace(getKeyspace());
-
 		cm.validate();
 
 		cm = new CassandraMigration();
 		cm.getConfigs().setScriptsLocations(new String[] { "migration/integ/java" });
 		cm.setKeyspace(getKeyspace());
-
 		try {
 			cm.validate();
-			Assert.fail("expected CassandraMigrationException but was no exception");
+			Assert.fail("The expected CassandraMigrationException was not raised");
 		} catch (CassandraMigrationException e) {
-			Assert.assertTrue("expected CassandraMigrationException", true);
 		}
 	}
 
