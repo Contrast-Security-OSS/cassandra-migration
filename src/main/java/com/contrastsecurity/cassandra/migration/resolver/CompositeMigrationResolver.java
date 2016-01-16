@@ -22,7 +22,13 @@ import com.contrastsecurity.cassandra.migration.info.ResolvedMigration;
 import com.contrastsecurity.cassandra.migration.resolver.cql.CqlMigrationResolver;
 import com.contrastsecurity.cassandra.migration.resolver.java.JavaMigrationResolver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Facility for retrieving and sorting the available migrations from the classpath through the various migration
