@@ -8,6 +8,7 @@ import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.utils.CachePrepareStatement;
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 
@@ -17,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 
 public class SchemaVersionDAO {
 
@@ -81,24 +81,37 @@ public class SchemaVersionDAO {
         boolean schemaVersionTableExists = false;
         boolean schemaVersionCountsTableExists = false;
 
-        Statement statement = QueryBuilder
+        Statement schemaVersionStatement = QueryBuilder
                 .select()
-                .column("columnfamily_name")
-                .from("System", "schema_columnfamilies")
-                .where(eq("keyspace_name", keyspace.getName()))
-                .and(in("columnfamily_name", tableName, tableName + COUNTS_TABLE_NAME_SUFFIX));
+                .countAll()
+                .from(keyspace.getName(), tableName);
 
-        statement.setConsistencyLevel(this.consistencyLevel);
-        ResultSet results = session.execute(statement);
-        for (Row row : results) {
-            String table = row.getString("columnfamily_name");
-            if (null != table && table.equalsIgnoreCase(tableName)) {
+        Statement schemaVersionCountsStatement = QueryBuilder
+                .select()
+                .countAll()
+                .from(keyspace.getName(), tableName + COUNTS_TABLE_NAME_SUFFIX);
+
+        schemaVersionStatement.setConsistencyLevel(this.consistencyLevel);
+        schemaVersionCountsStatement.setConsistencyLevel(this.consistencyLevel);
+
+        try {
+            ResultSet resultsSchemaVersion = session.execute(schemaVersionStatement);
+            if (resultsSchemaVersion.one() != null) {
                 schemaVersionTableExists = true;
             }
-            if (null != table && table.equalsIgnoreCase(tableName + COUNTS_TABLE_NAME_SUFFIX)) {
+        } catch (InvalidQueryException e) {
+            LOG.debug("No schema version table found with a name of " + tableName);
+        }
+
+        try {
+            ResultSet resultsSchemaVersionCounts = session.execute(schemaVersionCountsStatement);
+            if (resultsSchemaVersionCounts.one() != null) {
                 schemaVersionCountsTableExists = true;
             }
+        } catch (InvalidQueryException e) {
+            LOG.debug("No schema version counts table found with a name of " + tableName + COUNTS_TABLE_NAME_SUFFIX);
         }
+
         return schemaVersionTableExists && schemaVersionCountsTableExists;
     }
 
@@ -169,7 +182,7 @@ public class SchemaVersionDAO {
                     MigrationType.valueOf(row.getString("type")),
                     row.getString("script"),
                     row.isNull("checksum") ? null : row.getInt("checksum"),
-                    row.getDate("installed_on"),
+                    row.getTimestamp("installed_on"),
                     row.getString("installed_by"),
                     row.getInt("execution_time"),
                     row.getBool("success")
