@@ -27,7 +27,11 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ClassPathScanner {
     private static final Log LOG = LogFactory.getLog(ClassPathScanner.class);

@@ -1,15 +1,18 @@
 package com.contrastsecurity.cassandra.migration;
 
 import com.contrastsecurity.cassandra.migration.config.MigrationType;
+import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
+import com.contrastsecurity.cassandra.migration.info.AppliedMigration;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfo;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoDumper;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
+import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
+import org.junit.Assert;
 import org.junit.Test;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,13 +20,15 @@ import java.io.InputStreamReader;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 public class CassandraMigrationIT extends BaseIT {
-
     @Test
     public void runApiTest() {
-        String[] scriptsLocations = {"migration/integ", "migration/integ/java"};
+        String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
         CassandraMigration cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(scriptsLocations);
         cm.setKeyspace(getKeyspace());
@@ -40,9 +45,7 @@ public class CassandraMigrationIT extends BaseIT {
                 assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
                 assertThat(info.getScript().contains(".java"), is(true));
 
-                Select select = QueryBuilder.select()
-                        .column("value")
-                        .from("test1");
+                Select select = QueryBuilder.select().column("value").from("test1");
                 select.where(eq("space", "web")).and(eq("key", "facebook"));
                 ResultSet result = getSession().execute(select);
                 assertThat(result.one().getString("value"), is("facebook.com"));
@@ -51,9 +54,7 @@ public class CassandraMigrationIT extends BaseIT {
                 assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
                 assertThat(info.getScript().contains(".java"), is(true));
 
-                Select select = QueryBuilder.select()
-                        .column("value")
-                        .from("test1");
+                Select select = QueryBuilder.select().column("value").from("test1");
                 select.where(eq("space", "web")).and(eq("key", "google"));
                 ResultSet result = getSession().execute(select);
                 assertThat(result.one().getString("value"), is("google.com"));
@@ -62,10 +63,7 @@ public class CassandraMigrationIT extends BaseIT {
                 assertThat(info.getType().name(), is(MigrationType.CQL.name()));
                 assertThat(info.getScript().contains(".cql"), is(true));
 
-                Select select = QueryBuilder.select()
-                        .column("title")
-                        .column("message")
-                        .from("contents");
+                Select select = QueryBuilder.select().column("title").column("message").from("contents");
                 select.where(eq("id", 1));
                 Row row = getSession().execute(select).one();
                 assertThat(row.getString("title"), is("foo"));
@@ -75,9 +73,7 @@ public class CassandraMigrationIT extends BaseIT {
                 assertThat(info.getType().name(), is(MigrationType.CQL.name()));
                 assertThat(info.getScript().contains(".cql"), is(true));
 
-                Select select = QueryBuilder.select()
-                        .column("value")
-                        .from("test1");
+                Select select = QueryBuilder.select().column("value").from("test1");
                 select.where(eq("space", "foo")).and(eq("key", "bar"));
                 ResultSet result = getSession().execute(select);
                 assertThat(result.one().getString("value"), is("profit!"));
@@ -88,7 +84,7 @@ public class CassandraMigrationIT extends BaseIT {
         }
 
         // test out of order when out of order is not allowed
-        String[] outOfOrderScriptsLocations = {"migration/integ_outoforder", "migration/integ/java"};
+        String[] outOfOrderScriptsLocations = { "migration/integ_outoforder", "migration/integ/java" };
         cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(outOfOrderScriptsLocations);
         cm.setKeyspace(getKeyspace());
@@ -111,7 +107,7 @@ public class CassandraMigrationIT extends BaseIT {
         }
 
         // test out of order when out of order is allowed
-        String[] outOfOrder2ScriptsLocations = {"migration/integ_outoforder2", "migration/integ/java"};
+        String[] outOfOrder2ScriptsLocations = { "migration/integ_outoforder2", "migration/integ/java" };
         cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(outOfOrder2ScriptsLocations);
         cm.getConfigs().setAllowOutOfOrder(true);
@@ -135,7 +131,7 @@ public class CassandraMigrationIT extends BaseIT {
         }
 
         // test out of order when out of order is allowed again
-        String[] outOfOrder3ScriptsLocations = {"migration/integ_outoforder3", "migration/integ/java"};
+        String[] outOfOrder3ScriptsLocations = { "migration/integ_outoforder3", "migration/integ/java" };
         cm = new CassandraMigration();
         cm.getConfigs().setScriptsLocations(outOfOrder3ScriptsLocations);
         cm.getConfigs().setAllowOutOfOrder(true);
@@ -159,24 +155,53 @@ public class CassandraMigrationIT extends BaseIT {
         }
     }
 
+    @Test
+    public void testValidate() {
+        // apply migration scripts
+        String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
+        CassandraMigration cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(scriptsLocations);
+        cm.setKeyspace(getKeyspace());
+        cm.migrate();
+
+        MigrationInfoService infoService = cm.info();
+        String validationError = infoService.validate();
+        Assert.assertNull(validationError);
+
+        cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(scriptsLocations);
+        cm.setKeyspace(getKeyspace());
+
+        cm.validate();
+
+        cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(new String[] { "migration/integ/java" });
+        cm.setKeyspace(getKeyspace());
+
+        try {
+            cm.validate();
+            Assert.fail("expected CassandraMigrationException but was no exception");
+        } catch (CassandraMigrationException e) {
+            Assert.assertTrue("expected CassandraMigrationException", true);
+        }
+    }
+
     static boolean runCmdTestCompleted = false;
     static boolean runCmdTestSuccess = false;
 
     @Test
     public void runCmdTest() throws IOException, InterruptedException {
-        String shell =
-                "java -jar" +
-                        " -Dcassandra.migration.scripts.locations=filesystem:target/test-classes/migration/integ" +
-                        " -Dcassandra.migration.cluster.contactpoints=" + BaseIT.CASSANDRA_CONTACT_POINT +
-                        " -Dcassandra.migration.cluster.port=" + BaseIT.CASSANDRA_PORT +
-                        " -Dcassandra.migration.cluster.username=" + BaseIT.CASSANDRA_USERNAME +
-                        " -Dcassandra.migration.cluster.password=" + BaseIT.CASSANDRA_PASSWORD +
-                        " -Dcassandra.migration.keyspace.name=" + BaseIT.CASSANDRA__KEYSPACE +
-                        " target/*-jar-with-dependencies.jar" +
-                        " migrate";
+        String shell = "java -jar"
+                + " -Dcassandra.migration.scripts.locations=filesystem:target/test-classes/migration/integ"
+                + " -Dcassandra.migration.cluster.contactpoints=" + BaseIT.CASSANDRA_CONTACT_POINT
+                + " -Dcassandra.migration.cluster.port=" + BaseIT.CASSANDRA_PORT
+                + " -Dcassandra.migration.cluster.username=" + BaseIT.CASSANDRA_USERNAME
+                + " -Dcassandra.migration.cluster.password=" + BaseIT.CASSANDRA_PASSWORD
+                + " -Dcassandra.migration.keyspace.name=" + BaseIT.CASSANDRA__KEYSPACE
+                + " target/*-jar-with-dependencies.jar" + " migrate";
         ProcessBuilder builder;
         if (isWindows()) {
-            throw new NotImplementedException();
+            throw new IllegalStateException();
         } else {
             builder = new ProcessBuilder("bash", "-c", shell);
         }
@@ -191,6 +216,34 @@ public class CassandraMigrationIT extends BaseIT {
         assertThat(runCmdTestSuccess, is(true));
     }
 
+    @Test
+    public void testBaseLine(){
+        String[] scriptsLocations = {"migration/integ", "migration/integ/java"};
+        CassandraMigration cm = new CassandraMigration();
+        cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(scriptsLocations);
+        cm.setKeyspace(getKeyspace());
+        cm.baseline();
+
+        SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(getSession(), getKeyspace(), MigrationVersion.CURRENT.getTable());
+        AppliedMigration baselineMarker = schemaVersionDao.getBaselineMarker();
+        assertThat(baselineMarker.getVersion(), is(MigrationVersion.fromVersion("1")));
+    }
+
+    @Test(expected = CassandraMigrationException.class)
+    public void testBaseLineWithMigrations() {
+        String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
+        CassandraMigration cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(scriptsLocations);
+        cm.setKeyspace(getKeyspace());
+        cm.migrate();
+
+        cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(scriptsLocations);
+        cm.setKeyspace(getKeyspace());
+        cm.baseline();
+    }
+
     private static void watch(final Process process) {
         new Thread(new Runnable() {
             public void run() {
@@ -200,7 +253,7 @@ public class CassandraMigrationIT extends BaseIT {
                     while ((line = input.readLine()) != null) {
                         if (line.contains("Successfully applied 2 migrations"))
                             runCmdTestSuccess = true;
-                        //System.out.println(line);
+                        System.out.println(line);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

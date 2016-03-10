@@ -15,7 +15,13 @@
  */
 package com.contrastsecurity.cassandra.migration.utils;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 
 /**
  * Utility class for copying files and their contents. Inspired by Spring's own.

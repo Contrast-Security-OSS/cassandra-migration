@@ -7,15 +7,22 @@ import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.utils.CachePrepareStatement;
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BatchStatement;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
@@ -39,6 +46,10 @@ public class SchemaVersionDAO {
 
     public Keyspace getKeyspace() {
         return this.keyspace;
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
     public void createTablesIfNotExist() {
@@ -104,27 +115,16 @@ public class SchemaVersionDAO {
         MigrationVersion version = appliedMigration.getVersion();
 
         int versionRank = calculateVersionRank(version);
-        PreparedStatement statement = cachePs.prepare(
-                "INSERT INTO " + keyspace.getName() + "." + tableName +
+        PreparedStatement statement = cachePs.prepare("INSERT INTO " + keyspace.getName() + "." + tableName +
                         " (version_rank, installed_rank, version, description, type, script, checksum, installed_on," +
                         "  installed_by, execution_time, success)" +
                         " VALUES" +
-                        " (?, ?, ?, ?, ?, ?, ?, dateOf(now()), ?, ?, ?);"
-        );
+                        " (?, ?, ?, ?, ?, ?, ?, dateOf(now()), ?, ?, ?);");
 
         statement.setConsistencyLevel(ConsistencyLevel.ALL);
-        session.execute(statement.bind(
-                versionRank,
-                calculateInstalledRank(),
-                version.toString(),
-                appliedMigration.getDescription(),
-                appliedMigration.getType().name(),
-                appliedMigration.getScript(),
-                appliedMigration.getChecksum(),
-                appliedMigration.getInstalledBy(),
-                appliedMigration.getExecutionTime(),
-                appliedMigration.isSuccess()
-        ));
+        session.execute(statement.bind(versionRank, calculateInstalledRank(), version.toString(), appliedMigration.getDescription(), appliedMigration.getType
+                ().name(), appliedMigration.getScript(), appliedMigration.getChecksum(), appliedMigration.getInstalledBy(), appliedMigration.getExecutionTime
+                (), appliedMigration.isSuccess()));
         LOG.debug("Schema version table " + tableName + " successfully updated to reflect changes");
     }
 
@@ -178,6 +178,58 @@ public class SchemaVersionDAO {
     }
 
     /**
+     * Retrieve the applied migrations from the metadata table.
+     *
+     * @return The applied migrations.
+     */
+    public List<AppliedMigration> findAppliedMigrations(MigrationType... migrationTypes) {
+        if (!tablesExist()) {
+            return new ArrayList<>();
+        }
+
+        Select select = QueryBuilder
+                .select()
+                .column("version_rank")
+                .column("installed_rank")
+                .column("version")
+                .column("description")
+                .column("type")
+                .column("script")
+                .column("checksum")
+                .column("installed_on")
+                .column("installed_by")
+                .column("execution_time")
+                .column("success")
+                .from(keyspace.getName(), tableName);
+
+        select.setConsistencyLevel(ConsistencyLevel.ALL);
+        ResultSet results = session.execute(select);
+        List<AppliedMigration> resultsList = new ArrayList<>();
+        List<MigrationType> migTypeList = Arrays.asList(migrationTypes);
+        for (Row row : results) {
+            MigrationType migType = MigrationType.valueOf(row.getString("type"));
+            if(migTypeList.contains(migType)){
+                resultsList.add(new AppliedMigration(
+                        row.getInt("version_rank"),
+                        row.getInt("installed_rank"),
+                        MigrationVersion.fromVersion(row.getString("version")),
+                        row.getString("description"),
+                        migType,
+                        row.getString("script"),
+                        row.getInt("checksum"),
+                        row.getDate("installed_on"),
+                        row.getString("installed_by"),
+                        row.getInt("execution_time"),
+                        row.getBool("success")
+                ));
+            }
+        }
+
+        //order by version_rank not necessary here as it eventually gets saved in TreeMap that uses natural ordering
+
+        return resultsList;
+    }
+    /**
      * Calculates the installed rank for the new migration to be inserted.
      *
      * @return The installed rank.
@@ -195,6 +247,21 @@ public class SchemaVersionDAO {
         select.setConsistencyLevel(ConsistencyLevel.ALL);
         ResultSet result = session.execute(select);
         return (int) result.one().getLong("count");
+    }
+
+    public boolean hasAppliedMigrations() {
+        if (!tablesExist()) {
+            return false;
+        }
+        createTablesIfNotExist();
+        List<AppliedMigration> filteredMigrations = new ArrayList<>();
+        List<AppliedMigration> appliedMigrations = findAppliedMigrations();
+        for (AppliedMigration appliedMigration : appliedMigrations) {
+            if (!appliedMigration.getType().equals(MigrationType.BASELINE)) {
+                filteredMigrations.add(appliedMigration);
+            }
+        }
+        return !filteredMigrations.isEmpty();
     }
 
     class MigrationMetaHolder {
@@ -256,5 +323,23 @@ public class SchemaVersionDAO {
         session.execute(batchStatement);
 
         return migrationVersions.size() + 1;
+    }
+
+    public AppliedMigration getBaselineMarker() {
+        List<AppliedMigration> appliedMigrations = findAppliedMigrations(MigrationType.BASELINE);
+        return appliedMigrations.isEmpty() ? null : appliedMigrations.get(0);
+    }
+
+    public boolean hasBaselineMarker() {
+        if (!tablesExist()) {
+            return false;
+        }
+        createTablesIfNotExist();
+        return !findAppliedMigrations(MigrationType.BASELINE).isEmpty();
+    }
+
+    public void addBaselineMarker(final MigrationVersion baselineVersion, final String baselineDescription) {
+        addAppliedMigration(new AppliedMigration(baselineVersion, baselineDescription, MigrationType.BASELINE, baselineDescription,0, null,
+                0, true));
     }
 }

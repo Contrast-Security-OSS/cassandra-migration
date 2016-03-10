@@ -10,6 +10,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandLine {
+    /**
+     * command to trigger migrate action
+     */
+    public static final String MIGRATE = "migrate";
+
+    /**
+     * command to trigger validate action
+     */
+    public static final String VALIDATE = "validate";
+
+    /**
+     * command to trigger baseline action
+     */
+    public static final String BASELINE = "baseline";
+
     private static Log LOG;
 
     public static void main(String[] args) {
@@ -22,10 +37,18 @@ public class CommandLine {
             return;
         }
 
+        String operation = operations.get(0);
+
         CassandraMigration cm = new CassandraMigration();
         Keyspace ks = new Keyspace();
         cm.setKeyspace(ks);
-        cm.migrate();
+        if (MIGRATE.equalsIgnoreCase(operation)) {
+            cm.migrate();
+        } else if (VALIDATE.equalsIgnoreCase(operation)) {
+            cm.validate();
+        }else if(BASELINE.equalsIgnoreCase(operation)){
+            cm.baseline();
+        }
     }
 
     private static List<String> determineOperations(String[] args) {
@@ -67,6 +90,8 @@ public class CommandLine {
         LOG.info("Commands");
         LOG.info("========");
         LOG.info("migrate  : Migrates the database");
+        LOG.info("validate : Validates the applied migrations against the available ones");
+        LOG.info("baseline : Baselines an existing database, excluding all migrations upto and including baselineVersion");
         LOG.info("");
         LOG.info("Add -X to print debug output");
         LOG.info("Add -q to suppress all output, except for errors and warnings");

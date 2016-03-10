@@ -2,7 +2,11 @@ package com.contrastsecurity.cassandra.migration.action;
 
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
-import com.contrastsecurity.cassandra.migration.info.*;
+import com.contrastsecurity.cassandra.migration.info.AppliedMigration;
+import com.contrastsecurity.cassandra.migration.info.MigrationInfo;
+import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
+import com.contrastsecurity.cassandra.migration.info.MigrationState;
+import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
