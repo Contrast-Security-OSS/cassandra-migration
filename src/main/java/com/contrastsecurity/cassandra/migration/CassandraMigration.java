@@ -65,7 +65,44 @@ public class CassandraMigration {
     }
 
     public int migrate() {
-        return execute(new Action<Integer>() {
+        return execute(migrateAction());
+    }
+
+    public int migrate(Session session) {
+        return execute(migrateAction(), session);
+    }
+
+    public MigrationInfoService info() {
+        return execute(infoAction());
+    }
+
+    public MigrationInfoService info(Session session) {
+        return execute(infoAction(), session);
+    }
+
+    public void validate() {
+        String validationError = execute(validationAction());
+
+        if (validationError != null) {
+            throw new CassandraMigrationException("Validation failed. " + validationError);
+        }
+    }
+
+    public void validate(Session session) {
+        String validationError = execute(validationAction(), session);
+
+        if (validationError != null) {
+            throw new CassandraMigrationException("Validation failed. " + validationError);
+        }
+    }
+
+    public void baseline() {
+        //TODO
+        throw new NotImplementedException();
+    }
+
+    private Action<Integer> migrateAction() {
+        return new Action<Integer>() {
             public Integer execute(Session session) {
                 new Initialize().run(session, keyspace, MigrationVersion.CURRENT.getTable());
 
@@ -73,14 +110,13 @@ public class CassandraMigration {
                 SchemaVersionDAO schemaVersionDAO = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
                 Migrate migrate = new Migrate(migrationResolver, configs.getTarget(), schemaVersionDAO, session,
                         keyspace.getCluster().getUsername(), configs.isAllowOutOfOrder());
-
                 return migrate.run();
             }
-        });
+        };
     }
 
-    public MigrationInfoService info() {
-        return execute(new Action<MigrationInfoService>() {
+    private Action<MigrationInfoService> infoAction() {
+        return new Action<MigrationInfoService>() {
             public MigrationInfoService execute(Session session) {
                 MigrationResolver migrationResolver = createMigrationResolver();
                 SchemaVersionDAO schemaVersionDAO = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
@@ -90,28 +126,19 @@ public class CassandraMigration {
 
                 return migrationInfoService;
             }
-        });
+        };
     }
 
-    public void validate() {
-    	String validationError = execute(new Action<String>() {
-    		@Override
-    		public String execute(Session session) {
-    			MigrationResolver migrationResolver = createMigrationResolver();
-    			SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
-    			Validate validate = new Validate(migrationResolver, schemaVersionDao, configs.getTarget(), true, false);
-    			return validate.run();
-    		}
-    	});
-    
-    	if (validationError != null) {
-    		throw new CassandraMigrationException("Validation failed. " + validationError);
-    	}
-    }
-    
-    public void baseline() {
-        //TODO
-        throw new NotImplementedException();
+    private Action<String> validationAction() {
+        return new Action<String>() {
+            @Override
+            public String execute(Session session) {
+                MigrationResolver migrationResolver = createMigrationResolver();
+                SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
+                Validate validate = new Validate(migrationResolver, schemaVersionDao, configs.getTarget(), true, false);
+                return validate.run();
+            }
+        };
     }
 
     private String getConnectionInfo(Metadata metadata) {
@@ -142,6 +169,9 @@ public class CassandraMigration {
             if (null == keyspace.getCluster())
                 throw new IllegalArgumentException("Unable to establish Cassandra session. Cluster is not configured.");
 
+            if (null == keyspace.getName() || keyspace.getName().trim().length() == 0)
+                throw new IllegalArgumentException("Keyspace name not specified.");
+
             com.datastax.driver.core.Cluster.Builder builder = new com.datastax.driver.core.Cluster.Builder();
             builder.addContactPoints(keyspace.getCluster().getContactpoints()).withPort(keyspace.getCluster().getPort());
             if (null != keyspace.getCluster().getUsername() && !keyspace.getCluster().getUsername().trim().isEmpty()) {
@@ -158,8 +188,6 @@ public class CassandraMigration {
             LOG.info(getConnectionInfo(metadata));
 
             session = cluster.newSession();
-            if (null == keyspace.getName() || keyspace.getName().trim().length() == 0)
-                throw new IllegalArgumentException("Keyspace not specified.");
             List<KeyspaceMetadata> keyspaces = metadata.getKeyspaces();
             boolean keyspaceExists = false;
             for (KeyspaceMetadata keyspaceMetadata : keyspaces) {
@@ -171,21 +199,26 @@ public class CassandraMigration {
             else
                 throw new CassandraMigrationException("Keyspace: " + keyspace.getName() + " does not exist.");
 
-            result = action.execute(session);
+            result = execute(action, session);
         } finally {
             if (null != session && !session.isClosed())
                 try {
                     session.close();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     LOG.warn("Error closing Cassandra session");
                 }
             if (null != cluster && !cluster.isClosed())
                 try {
                     cluster.close();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     LOG.warn("Error closing Cassandra cluster");
                 }
         }
+        return result;
+    }
+
+    <T> T execute(Action<T> action, Session session) {
+        T result = action.execute(session);
         return result;
     }
 
