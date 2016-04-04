@@ -62,7 +62,7 @@ public class CassandraMigration {
         return configs;
     }
 
-    private MigrationResolver createMigrationResolver() {
+    protected MigrationResolver createMigrationResolver() {
         return new CompositeMigrationResolver(classLoader, new ScriptsLocations(configs.getScriptsLocations()), configs.getEncoding());
     }
 
