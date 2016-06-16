@@ -3,7 +3,7 @@
     <groupId>com.contrastsecurity</groupId>
     <artifactId>cassandra-migration</artifactId>
     <name>Cassandra Migration</name>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.7</version>
     <description>
         Database migration tool for Cassandra
     </description>
@@ -38,7 +38,7 @@
         <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
         <connection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</connection>
         <developerConnection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>cassandra-migration-0.7</tag>
     </scm>
 
     <developers>
