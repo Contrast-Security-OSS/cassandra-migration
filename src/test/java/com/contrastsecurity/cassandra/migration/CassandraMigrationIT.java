@@ -6,6 +6,7 @@ import com.contrastsecurity.cassandra.migration.info.MigrationInfoDumper;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import org.junit.Assert;
@@ -177,6 +178,38 @@ public class CassandraMigrationIT extends BaseIT {
 		} catch (CassandraMigrationException e) {
 		}
 	}
+
+	@Test
+	public void testValidateWithSession() {
+		// apply migration scripts
+		String[] scriptsLocations = { "migration/integ", "migration/integ/java" };
+		Session session = getSession();
+		CassandraMigration cm = new CassandraMigration();
+		cm.getConfigs().setScriptsLocations(scriptsLocations);
+		cm.setKeyspace(getKeyspace());
+		cm.migrate(session);
+
+		MigrationInfoService infoService = cm.info(session);
+		String validationError = infoService.validate();
+		Assert.assertNull(validationError);
+
+		cm = new CassandraMigration();
+		cm.getConfigs().setScriptsLocations(scriptsLocations);
+		cm.setKeyspace(getKeyspace());
+		cm.validate(session);
+
+		cm = new CassandraMigration();
+		cm.getConfigs().setScriptsLocations(new String[] { "migration/integ/java" });
+		cm.setKeyspace(getKeyspace());
+		try {
+			cm.validate(session);
+			Assert.fail("The expected CassandraMigrationException was not raised");
+		} catch (CassandraMigrationException e) {
+		}
+
+		Assert.assertFalse(session.isClosed());
+	}
+
 
 	static boolean runCmdTestCompleted = false;
 	static boolean runCmdTestSuccess = false;
