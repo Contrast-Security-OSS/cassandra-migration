@@ -97,7 +97,7 @@ cm.migrate();
 ### Command line
 ```
 java -jar \
--Dcassandra.migration.scripts.locations=file:target/test-classes/migration/integ \
+-Dcassandra.migration.scripts.locations=filesystem:target/test-classes/migration/integ \
 -Dcassandra.migration.cluster.contactpoints=localhost \
 -Dcassandra.migration.cluster.port=9147 \
 -Dcassandra.migration.cluster.username=cassandra \
