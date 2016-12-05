@@ -169,7 +169,7 @@ public class CassandraMigrationIT extends BaseIT {
 		cm.validate();
 
 		cm = new CassandraMigration();
-		cm.getConfigs().setScriptsLocations(new String[] { "migration/integ/java" });
+		cm.getConfigs().setScriptsLocations(new String[]{"migration/integ/java"});
 		cm.setKeyspace(getKeyspace());
 		try {
 			cm.validate();
@@ -207,6 +207,17 @@ public class CassandraMigrationIT extends BaseIT {
 
 		assertThat(runCmdTestSuccess, is(true));
 	}
+
+    @Test
+    public void testClean(){
+        String[] scriptsLocations = {"migration/integ", "migration/integ/java"};
+        CassandraMigration cm = new CassandraMigration();
+        cm.getConfigs().setScriptsLocations(scriptsLocations);
+        cm.setKeyspace(getKeyspace());
+        cm.migrate();
+        int cleanedTablesCount = cm.clean();
+        assertThat(cleanedTablesCount, is(5));
+    }
 
 	private static void watch(final Process process) {
 		new Thread(new Runnable() {

@@ -7,6 +7,7 @@ import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.utils.CachePrepareStatement;
+import com.contrastsecurity.cassandra.migration.utils.StopWatch;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -38,6 +39,12 @@ public class SchemaVersionDAO {
         //If running on a single host, don't force ConsistencyLevel.ALL
         this.consistencyLevel =
                 session.getCluster().getMetadata().getAllHosts().size() > 1 ? ConsistencyLevel.ALL :  ConsistencyLevel.ONE;
+    }
+
+    public SchemaVersionDAO(Session session, Keyspace keyspace) {
+        this.session = session;
+        this.keyspace = keyspace;
+        this.cachePs = new CachePrepareStatement(session);
     }
 
     public Keyspace getKeyspace() {
@@ -273,5 +280,31 @@ public class SchemaVersionDAO {
         session.execute(batchStatement);
 
         return migrationVersions.size() + 1;
+    }
+
+    //drops all tables in a keyspace
+    public int cleanTable() {
+
+        int cleanedTableCount = 0;
+        List<String> tableList = new ArrayList<String>();
+
+        String strCQL = "select columnfamily_name from system.schema_columnfamilies where keyspace_name = ? ;";
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        PreparedStatement pStatement = session.prepare(strCQL);
+        BoundStatement boundStatement = new BoundStatement(pStatement);
+        boundStatement.bind(keyspace.getName());
+
+        ResultSet resultSet = session.execute(boundStatement);
+
+        for (Row row : resultSet){
+            Statement statement = new SimpleStatement("DROP TABLE " +keyspace.getName() + "." + row.getString(0) );
+            statement.setConsistencyLevel(ConsistencyLevel.ALL);
+            session.execute(statement);
+            cleanedTableCount++;
+        }
+        stopWatch.stop();
+        return  cleanedTableCount;
     }
 }

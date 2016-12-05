@@ -20,6 +20,11 @@ public class CommandLine {
 	 * command to trigger validate action
 	 */
 	public static final String VALIDATE = "validate";
+    
+    /**
+     * command to trigger validate action
+     */
+    public static final String CLEAN = "clean";
 
 	/**
 	 * logging support
@@ -49,7 +54,9 @@ public class CommandLine {
 			cm.migrate();
 		} else if (VALIDATE.equalsIgnoreCase(operation)) {
 			cm.validate();
-		}
+		}else if (CLEAN.equalsIgnoreCase(operation)) {
+            cm.clean();
+        }
 	}
 
 	private static List<String> determineOperations(String[] args) {
@@ -92,6 +99,7 @@ public class CommandLine {
 		LOG.info("========");
 		LOG.info("migrate  : Migrates the database");
 		LOG.info("validate : Validates the applied migrations against the available ones");
+        LOG.info("clean : drops all the tables in a keyspace");
 		LOG.info("");
 		LOG.info("Add -X to print debug output");
 		LOG.info("Add -q to suppress all output, except for errors and warnings");
