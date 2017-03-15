@@ -152,6 +152,8 @@ public class CassandraMigration {
                     throw new IllegalArgumentException("Password must be provided with username.");
                 }
             }
+            if (keyspace.getCluster().isSSL())
+                builder.withSSL();
             cluster = builder.build();
 
             Metadata metadata = cluster.getMetadata();
