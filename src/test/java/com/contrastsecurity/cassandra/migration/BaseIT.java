@@ -17,6 +17,7 @@ public abstract class BaseIT {
     public static final int CASSANDRA_PORT = 9147;
     public static final String CASSANDRA_USERNAME = "cassandra";
     public static final String CASSANDRA_PASSWORD = "cassandra";
+    public static final boolean CASSANDRA_SSL = false;
 
     private Session session;
 
@@ -57,6 +58,7 @@ public abstract class BaseIT {
         ks.getCluster().setPort(CASSANDRA_PORT);
         ks.getCluster().setUsername(CASSANDRA_USERNAME);
         ks.getCluster().setPassword(CASSANDRA_PASSWORD);
+        ks.getCluster().setSSL(CASSANDRA_SSL);
         return ks;
     }
 
@@ -67,6 +69,8 @@ public abstract class BaseIT {
         com.datastax.driver.core.Cluster.Builder builder = new com.datastax.driver.core.Cluster.Builder();
         builder.addContactPoints(CASSANDRA_CONTACT_POINT).withPort(CASSANDRA_PORT);
         builder.withCredentials(keyspace.getCluster().getUsername(), keyspace.getCluster().getPassword());
+        if (keyspace.getCluster().isSSL())
+            builder.withSSL();
         Cluster cluster = builder.build();
         session = cluster.connect();
         return session;

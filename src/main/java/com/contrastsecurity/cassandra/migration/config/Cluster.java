@@ -7,7 +7,8 @@ public class Cluster {
         CONTACTPOINTS(PROPERTY_PREFIX + "contactpoints", "Comma separated values of node IP addresses"),
         PORT(PROPERTY_PREFIX + "port", "CQL native transport port"),
         USERNAME(PROPERTY_PREFIX + "username", "Username for password authenticator"),
-        PASSWORD(PROPERTY_PREFIX + "password", "Password for password authenticator");
+        PASSWORD(PROPERTY_PREFIX + "password", "Password for password authenticator"),
+        SSL(PROPERTY_PREFIX + "ssl", "Cluster requires SSL connection (true/false)");
 
         private String name;
         private String description;
@@ -30,6 +31,7 @@ public class Cluster {
     private int port = 9042;
     private String username;
     private String password;
+    private boolean ssl;
 
     public Cluster() {
         String contactpointsP = System.getProperty(ClusterProperty.CONTACTPOINTS.getName());
@@ -47,6 +49,8 @@ public class Cluster {
         String passwordP = System.getProperty(ClusterProperty.PASSWORD.getName());
         if (null != passwordP && passwordP.trim().length() != 0)
             this.password = passwordP;
+
+        this.ssl = Boolean.getBoolean(ClusterProperty.SSL.getName());
     }
 
     public String[] getContactpoints() {
@@ -79,5 +83,13 @@ public class Cluster {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isSSL() {
+        return ssl;
+    }
+
+    public void setSSL(boolean ssl) {
+        this.ssl = ssl;
     }
 }
