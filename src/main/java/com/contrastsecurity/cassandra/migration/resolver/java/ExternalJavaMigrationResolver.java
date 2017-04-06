@@ -51,13 +51,12 @@ public class ExternalJavaMigrationResolver extends CommonJavaResolver implements
     }
 
     public List<ResolvedMigration> resolveMigrations() {
-        List<ResolvedMigration> migrations = new ArrayList<ResolvedMigration>();
 
         if (!location.isFileSystem()) {
-            return migrations;
+            return Collections.emptyList();
         }
 
-        loadJavaMigrationFiles(classLoader, new ScriptsLocation(""), migrations);
+        List<ResolvedMigration> migrations = loadJavaMigrationFiles(classLoader, new ScriptsLocation(""));
 
         Collections.sort(migrations, new ResolvedMigrationComparator());
         return migrations;

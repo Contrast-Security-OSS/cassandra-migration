@@ -14,6 +14,7 @@ import com.contrastsecurity.cassandra.migration.utils.Pair;
 import com.contrastsecurity.cassandra.migration.utils.StringUtils;
 import com.contrastsecurity.cassandra.migration.utils.scanner.Scanner;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -21,11 +22,12 @@ import java.util.List;
  *
  * @author Adam Król
  */
-public class CommonJavaResolver {
+class CommonJavaResolver {
 
-    public void loadJavaMigrationFiles(ClassLoader classLoader, ScriptsLocation location, List<ResolvedMigration> migrations) {
+    List<ResolvedMigration> loadJavaMigrationFiles(ClassLoader classLoader, ScriptsLocation location) {
         try {
             Class<?>[] classes = new Scanner(classLoader).scanForClasses(location, JavaMigration.class);
+            List<ResolvedMigration> migrations = new LinkedList<>();
             for (Class<?> clazz : classes) {
                 JavaMigration javaMigration = ClassUtils.instantiate(clazz.getName(), classLoader);
 
@@ -35,6 +37,7 @@ public class CommonJavaResolver {
 
                 migrations.add(migrationInfo);
             }
+            return migrations;
         } catch (Exception e) {
             throw new CassandraMigrationException("Unable to resolve Java migrations in location: " + location, e);
         }
@@ -46,7 +49,7 @@ public class CommonJavaResolver {
      * @param javaMigration The migration to analyse.
      * @return The migration info.
      */
-    public ResolvedMigration extractMigrationInfo(JavaMigration javaMigration) {
+    ResolvedMigration extractMigrationInfo(JavaMigration javaMigration) {
         Integer checksum = null;
         if (javaMigration instanceof MigrationChecksumProvider) {
             MigrationChecksumProvider checksumProvider = (MigrationChecksumProvider) javaMigration;

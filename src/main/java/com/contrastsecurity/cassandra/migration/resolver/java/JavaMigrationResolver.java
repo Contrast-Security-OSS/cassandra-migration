@@ -51,13 +51,11 @@ public class JavaMigrationResolver extends CommonJavaResolver implements Migrati
     }
 
     public List<ResolvedMigration> resolveMigrations() {
-        List<ResolvedMigration> migrations = new ArrayList<ResolvedMigration>();
-
         if (!location.isClassPath()) {
-            return migrations;
+            return Collections.emptyList();
         }
 
-        loadJavaMigrationFiles(classLoader, location, migrations);
+        List<ResolvedMigration> migrations = loadJavaMigrationFiles(classLoader, location);
 
         Collections.sort(migrations, new ResolvedMigrationComparator());
         return migrations;
