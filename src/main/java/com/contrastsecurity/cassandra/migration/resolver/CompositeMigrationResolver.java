@@ -20,8 +20,13 @@ import com.contrastsecurity.cassandra.migration.config.ScriptsLocation;
 import com.contrastsecurity.cassandra.migration.config.ScriptsLocations;
 import com.contrastsecurity.cassandra.migration.info.ResolvedMigration;
 import com.contrastsecurity.cassandra.migration.resolver.cql.CqlMigrationResolver;
+import com.contrastsecurity.cassandra.migration.resolver.java.ExternalJavaMigrationResolver;
 import com.contrastsecurity.cassandra.migration.resolver.java.JavaMigrationResolver;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.*;
 
 /**
@@ -54,6 +59,11 @@ public class CompositeMigrationResolver implements MigrationResolver {
         for (ScriptsLocation location : locations.getLocations()) {
             migrationResolvers.add(new CqlMigrationResolver(classLoader, location, encoding));
             migrationResolvers.add(new JavaMigrationResolver(classLoader, location));
+            try {
+                migrationResolvers.add(new ExternalJavaMigrationResolver(new URLClassLoader(new URL[]{new File(location.getPath()).toURI().toURL()}, this.getClass().getClassLoader()), location));
+            } catch (MalformedURLException e) {
+                throw new CassandraMigrationException("Unable to add external url for classes migrations in location: " + location, e);
+            }
         }
 
         migrationResolvers.addAll(Arrays.asList(customMigrationResolvers));
