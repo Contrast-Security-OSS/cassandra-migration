@@ -1,5 +1,6 @@
 package com.contrastsecurity.cassandra.migration;
 
+import com.contrastsecurity.cassandra.migration.action.Clear;
 import com.contrastsecurity.cassandra.migration.action.Initialize;
 import com.contrastsecurity.cassandra.migration.action.Migrate;
 import com.contrastsecurity.cassandra.migration.action.Validate;
@@ -108,6 +109,15 @@ public class CassandraMigration {
     		throw new CassandraMigrationException("Validation failed. " + validationError);
     	}
     }
+
+    public Boolean clear() {
+        return execute(new Action<Boolean>() {
+            public Boolean execute(Session session) {
+                Clear clear = new Clear(session, keyspace);
+                return clear.run();
+            }
+        });
+    }
     
     public void baseline() {
         //TODO
@@ -162,8 +172,9 @@ public class CassandraMigration {
                 throw new IllegalArgumentException("Keyspace not specified.");
             List<KeyspaceMetadata> keyspaces = metadata.getKeyspaces();
             boolean keyspaceExists = false;
+            String keyspaceName = keyspace.getName().replace("\"", ""); //remove quotation marks
             for (KeyspaceMetadata keyspaceMetadata : keyspaces) {
-                if (keyspaceMetadata.getName().equalsIgnoreCase(keyspace.getName()))
+                if (keyspaceMetadata.getName().equalsIgnoreCase(keyspaceName))
                     keyspaceExists = true;
             }
             if (keyspaceExists)

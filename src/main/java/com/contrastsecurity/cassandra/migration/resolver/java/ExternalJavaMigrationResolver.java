@@ -28,7 +28,7 @@ import java.util.List;
  * Migration resolver for Java migrations. The classes must have a name like V1 or V1_1_3 or V1__Description
  * or V1_1_3__Description.
  */
-public class JavaMigrationResolver extends CommonJavaResolver implements MigrationResolver {
+public class ExternalJavaMigrationResolver extends CommonJavaResolver implements MigrationResolver {
     /**
      * The base package on the classpath where to migrations are located.
      */
@@ -45,21 +45,20 @@ public class JavaMigrationResolver extends CommonJavaResolver implements Migrati
      * @param location    The base package on the classpath where to migrations are located.
      * @param classLoader The ClassLoader for loading migrations on the classpath.
      */
-    public JavaMigrationResolver(ClassLoader classLoader, ScriptsLocation location) {
+    public ExternalJavaMigrationResolver(ClassLoader classLoader, ScriptsLocation location) {
         this.location = location;
         this.classLoader = classLoader;
     }
 
     public List<ResolvedMigration> resolveMigrations() {
-        if (!location.isClassPath()) {
+
+        if (!location.isFileSystem()) {
             return Collections.emptyList();
         }
 
-        List<ResolvedMigration> migrations = loadJavaMigrationFiles(classLoader, location);
+        List<ResolvedMigration> migrations = loadJavaMigrationFiles(classLoader, new ScriptsLocation(""));
 
         Collections.sort(migrations, new ResolvedMigrationComparator());
         return migrations;
     }
-
-
 }
