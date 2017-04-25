@@ -1,5 +1,6 @@
 package com.contrastsecurity.cassandra.migration;
 
+import com.contrastsecurity.cassandra.migration.action.Clear;
 import com.contrastsecurity.cassandra.migration.action.Initialize;
 import com.contrastsecurity.cassandra.migration.action.Migrate;
 import com.contrastsecurity.cassandra.migration.action.Validate;
@@ -107,6 +108,15 @@ public class CassandraMigration {
     	if (validationError != null) {
     		throw new CassandraMigrationException("Validation failed. " + validationError);
     	}
+    }
+
+    public Boolean clear() {
+        return execute(new Action<Boolean>() {
+            public Boolean execute(Session session) {
+                Clear clear = new Clear(session, keyspace);
+                return clear.run();
+            }
+        });
     }
     
     public void baseline() {
