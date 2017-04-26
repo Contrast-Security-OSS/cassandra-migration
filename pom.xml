@@ -10,7 +10,7 @@
     <groupId>com.hubrick</groupId>
     <artifactId>cassandra-migration</artifactId>
     <name>Cassandra Migration</name>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <description>
         Database migration tool for Cassandra
