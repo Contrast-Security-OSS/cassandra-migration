@@ -1,13 +1,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd http://www.w3.org/2001/XMLSchema-instance ">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.contrastsecurity</groupId>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <groupId>com.hubrick</groupId>
     <artifactId>cassandra-migration</artifactId>
     <name>Cassandra Migration</name>
-    <version>0.9-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
+
     <description>
         Database migration tool for Cassandra
     </description>
-    <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
+    <url>https://github.com/hubrick/cassandra-migration</url>
 
     <licenses>
         <license>
@@ -19,44 +27,43 @@
     <packaging>jar</packaging>
 
     <organization>
-        <name>Contrast Security</name>
-        <url>contrastsecurity.com</url>
+        <name>Hubrick</name>
+        <url>hubrick.com</url>
     </organization>
 
     <distributionManagement>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Sonatype Nexus release repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
         <snapshotRepository>
-            <id>ossrh</id>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus snapshot repository</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
     </distributionManagement>
 
     <scm>
-        <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
-        <connection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</connection>
-        <developerConnection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</developerConnection>
+        <connection>scm:git:https://github.com/hubrick/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/hubrick/${project.artifactId}.git</developerConnection>
+        <url>https://github.com/hubrick/${project.artifactId}</url>
         <tag>HEAD</tag>
     </scm>
 
     <developers>
         <developer>
-            <id>ntatsumi</id>
-            <name>Noriaki Tatsumi</name>
+            <id>1</id>
+            <name>Marcus Thiesen</name>
+            <email>oss@hubrick.com</email>
         </developer>
     </developers>
 
-    <prerequisites>
-        <maven>3.0.0</maven>
-    </prerequisites>
-    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -145,7 +152,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.contrastsecurity.cassandra.migration.CommandLine</mainClass>
+                            <mainClass>com.hubrick.cassandra.migration.CommandLine</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

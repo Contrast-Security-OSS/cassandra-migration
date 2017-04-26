@@ -1,6 +1,8 @@
 Cassandra Migration
 ========
 
+Based on https://github.com/Contrast-Security-OSS/cassandra-migration
+
 A simple and lightweight migration tool for Apache Cassandra database that's based on [Axel Fontaine's Flyway project](https://github.com/flyway/flyway).
 Cassandra Migration works just like Flyway. Plain CQL and Java based migrations are supported.
 The Java migration interface provides [DataStax's Java Driver](http://datastax.github.io/java-driver/) session.
@@ -23,9 +25,9 @@ Popular database migration tools, such as Flyway and Liquibase are tailored for 
 * Cassandra Migration library
 ```
 <dependency>
-    <groupId>com.contrastsecurity</groupId>
+    <groupId>com.hubrick</groupId>
     <artifactId>cassandra-migration</artifactId>
-    <version>0.6</version>
+    <version>0.1</version>
 </dependency>
 ```
 
