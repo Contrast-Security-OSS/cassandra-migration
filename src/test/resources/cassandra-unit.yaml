@@ -38,6 +38,8 @@ hinted_handoff_throttle_in_kb: 1024
 # cross-dc handoff tends to be slower
 max_hints_delivery_threads: 2
 
+hints_directory: target/embeddedCassandra/hints
+
 # The following setting populates the page cache on memtable flush and compaction
 # WARNING: Enable this setting only when the whole node's data fits in memory.
 # Defaults to: false
@@ -70,7 +72,7 @@ permissions_validity_in_ms: 2000
 
 
 # The partitioner is responsible for distributing rows (by key) across
-# nodes in the cluster.  Any IPartitioner may be used, including your
+# nodes in the cluster.  Any IPartitioner may be used, including your/m
 # own as long as it is on the classpath.  Out of the box, Cassandra
 # provides org.apache.cassandra.dht.{Murmur3Partitioner, RandomPartitioner
 # ByteOrderedPartitioner, OrderPreservingPartitioner (deprecated)}.
@@ -98,6 +100,8 @@ data_file_directories:
 
 # commit log
 commitlog_directory: target/embeddedCassandra/commitlog
+
+cdc_raw_directory: target/embeddedCassandra/cdc
 
 # policy for data disk failures:
 # stop: shut down gossip and Thrift, leaving the node effectively dead, but
@@ -573,7 +577,7 @@ index_interval: 128
 # the keystore and truststore.  For instructions on generating these files, see:
 # http://download.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CreateKeystore
 #
-server_encryption_options:
+encryption_options:
     internode_encryption: none
     keystore: conf/.keystore
     keystore_password: cassandra
