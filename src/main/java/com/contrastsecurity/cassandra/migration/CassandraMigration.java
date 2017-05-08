@@ -162,8 +162,9 @@ public class CassandraMigration {
                 throw new IllegalArgumentException("Keyspace not specified.");
             List<KeyspaceMetadata> keyspaces = metadata.getKeyspaces();
             boolean keyspaceExists = false;
+            String keyspaceName = keyspace.getName().replace("\"", ""); //remove quotation marks
             for (KeyspaceMetadata keyspaceMetadata : keyspaces) {
-                if (keyspaceMetadata.getName().equalsIgnoreCase(keyspace.getName()))
+                if (keyspaceMetadata.getName().equalsIgnoreCase(keyspaceName))
                     keyspaceExists = true;
             }
             if (keyspaceExists)
