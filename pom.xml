@@ -36,8 +36,8 @@
 
     <scm>
         <url>https://github.com/elo7/cassandra-migration</url>
-        <connection>scm:git:https://github.com/elo7/cassandra-migration.git</connection>
-        <developerConnection>scm:git:https://github.com/elo7/cassandra-migration.git</developerConnection>
+        <connection>scm:git:git@github.com:elo7/cassandra-migration.git</connection>
+        <developerConnection>scm:git:git@github.com:elo7/cassandra-migration.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
