@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd http://www.w3.org/2001/XMLSchema-instance ">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.contrastsecurity</groupId>
+    <groupId>com.elo7</groupId>
     <artifactId>cassandra-migration</artifactId>
     <name>Cassandra Migration</name>
     <version>0.9-SNAPSHOT</version>
     <description>
-        Database migration tool for Cassandra
+        Database migration tool for Cassandra forked from https://github.com/Contrast-Security-OSS/cassandra-migration v0.9
     </description>
-    <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
+    <url>https://github.com/elo7/cassandra-migration</url>
 
     <licenses>
         <license>
@@ -19,8 +19,8 @@
     <packaging>jar</packaging>
 
     <organization>
-        <name>Contrast Security</name>
-        <url>contrastsecurity.com</url>
+        <name>Elo7</name>
+        <url>elo7.com</url>
     </organization>
 
     <distributionManagement>
@@ -35,9 +35,9 @@
     </distributionManagement>
 
     <scm>
-        <url>https://github.com/Contrast-Security-OSS/cassandra-migration</url>
-        <connection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</connection>
-        <developerConnection>scm:git:https://github.com/Contrast-Security-OSS/cassandra-migration.git</developerConnection>
+        <url>https://github.com/elo7/cassandra-migration</url>
+        <connection>scm:git:git@github.com:elo7/cassandra-migration.git</connection>
+        <developerConnection>scm:git:git@github.com:elo7/cassandra-migration.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -51,7 +51,7 @@
     <prerequisites>
         <maven>3.0.0</maven>
     </prerequisites>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -219,6 +219,10 @@
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
+                                <configuration>
+                                    <keyname>${gpg.keyname}</keyname>
+                                    <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
