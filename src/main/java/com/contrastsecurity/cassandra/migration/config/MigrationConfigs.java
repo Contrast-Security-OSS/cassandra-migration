@@ -4,22 +4,30 @@ import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.utils.StringUtils;
 
 public class MigrationConfigs {
+    final static String PREFIX = "cassandra.migration.";
+    final static String ENV_PREFIX = "CASSANDRA_MIGRATION_";
     public enum MigrationProperty {
-        SCRIPTS_ENCODING("cassandra.migration.scripts.encoding", "Encoding for CQL scripts"),
-        SCRIPTS_LOCATIONS("cassandra.migration.scripts.locations", "Locations of the migration scripts in CSV format"),
-        ALLOW_OUTOFORDER("cassandra.migration.scripts.allowoutoforder", "Allow out of order migration"),
-        TARGET_VERSION("cassandra.migration.version.target", "The target version. Migrations with a higher version number will be ignored.");
+        SCRIPTS_ENCODING(PREFIX + "scripts.encoding", ENV_PREFIX + "SCRIPTS_ENCODING","Encoding for CQL scripts"),
+        SCRIPTS_LOCATIONS(PREFIX + "scripts.locations", ENV_PREFIX + "SCRIPTS_LOCATIONS", "Locations of the migration scripts in CSV format"),
+        ALLOW_OUTOFORDER(PREFIX + "scripts.allowoutoforder", ENV_PREFIX + "ALLOWOUTOFORDER", "Allow out of order migration"),
+        TARGET_VERSION(PREFIX + "version.target", ENV_PREFIX + "VERSION_TARGET", "The target version. Migrations with a higher version number will be ignored.");
 
         private String name;
+        private String envName;
         private String description;
 
-        MigrationProperty(String name, String description) {
+        MigrationProperty(String name, String envName, String description) {
             this.name = name;
+            this.envName = envName;
             this.description = description;
         }
 
         public String getName() {
             return name;
+        }
+
+        public String getEnvName() {
+            return envName;
         }
 
         public String getDescription() {
@@ -28,20 +36,20 @@ public class MigrationConfigs {
     }
 
     public MigrationConfigs() {
-        String scriptsEncodingP = System.getProperty(MigrationProperty.SCRIPTS_ENCODING.getName());
+        String scriptsEncodingP = PropertyGetter.getProperty(MigrationProperty.SCRIPTS_ENCODING.getName(), MigrationProperty.SCRIPTS_ENCODING.getEnvName());
         if (null != scriptsEncodingP && scriptsEncodingP.trim().length() != 0)
             this.encoding = scriptsEncodingP;
 
-        String targetVersionP = System.getProperty(MigrationProperty.TARGET_VERSION.getName());
+        String targetVersionP = PropertyGetter.getProperty(MigrationProperty.TARGET_VERSION.getName(), MigrationProperty.TARGET_VERSION.getEnvName());
         if (null != targetVersionP && targetVersionP.trim().length() != 0)
             setTargetAsString(targetVersionP);
 
-        String locationsProp = System.getProperty(MigrationProperty.SCRIPTS_LOCATIONS.getName());
+        String locationsProp = PropertyGetter.getProperty(MigrationProperty.SCRIPTS_LOCATIONS.getName(), MigrationProperty.SCRIPTS_LOCATIONS.getEnvName());
         if (locationsProp != null && locationsProp.trim().length() != 0) {
             scriptsLocations = StringUtils.tokenizeToStringArray(locationsProp, ",");
         }
 
-        String allowOutOfOrderProp = System.getProperty(MigrationProperty.ALLOW_OUTOFORDER.getName());
+        String allowOutOfOrderProp = PropertyGetter.getProperty(MigrationProperty.ALLOW_OUTOFORDER.getName(), MigrationProperty.ALLOW_OUTOFORDER.getEnvName());
         if(allowOutOfOrderProp != null && allowOutOfOrderProp.trim().length() != 0) {
             setAllowOutOfOrder(allowOutOfOrderProp);
         }

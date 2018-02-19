@@ -2,23 +2,30 @@ package com.contrastsecurity.cassandra.migration.config;
 
 public class Cluster {
     private static final String PROPERTY_PREFIX = "cassandra.migration.cluster.";
+    private static final String ENV_PREFIX = "CASSANDRA_MIGRATION_CLUSTER_";
 
     public enum ClusterProperty {
-        CONTACTPOINTS(PROPERTY_PREFIX + "contactpoints", "Comma separated values of node IP addresses"),
-        PORT(PROPERTY_PREFIX + "port", "CQL native transport port"),
-        USERNAME(PROPERTY_PREFIX + "username", "Username for password authenticator"),
-        PASSWORD(PROPERTY_PREFIX + "password", "Password for password authenticator");
+        CONTACTPOINTS(PROPERTY_PREFIX + "contactpoints", ENV_PREFIX + "CONTACTPOINTS", "Comma separated values of node IP addresses"),
+        PORT(PROPERTY_PREFIX + "port", ENV_PREFIX + "PORT", "CQL native transport port"),
+        USERNAME(PROPERTY_PREFIX + "username", ENV_PREFIX + "USERNAME", "Username for password authenticator"),
+        PASSWORD(PROPERTY_PREFIX + "password", ENV_PREFIX + "PASSWORD", "Password for password authenticator");
 
         private String name;
+        private String envName;
         private String description;
 
-        ClusterProperty(String name, String description) {
+        ClusterProperty(String name, String envName, String description) {
             this.name = name;
+            this.envName = envName;
             this.description = description;
         }
 
         public String getName() {
             return name;
+        }
+
+        public String getEnvName() {
+            return envName;
         }
 
         public String getDescription() {
@@ -32,19 +39,19 @@ public class Cluster {
     private String password;
 
     public Cluster() {
-        String contactpointsP = System.getProperty(ClusterProperty.CONTACTPOINTS.getName());
+        String contactpointsP = PropertyGetter.getProperty(ClusterProperty.CONTACTPOINTS.getName(), ClusterProperty.CONTACTPOINTS.getEnvName());
         if (null != contactpointsP && contactpointsP.trim().length() != 0)
             this.contactpoints = contactpointsP.replaceAll("\\s+", "").split("[,]");
 
-        String portP = System.getProperty(ClusterProperty.PORT.getName());
+        String portP = PropertyGetter.getProperty(ClusterProperty.PORT.getName(), ClusterProperty.PORT.getEnvName());
         if (null != portP && portP.trim().length() != 0)
             this.port = Integer.parseInt(portP);
 
-        String usernameP = System.getProperty(ClusterProperty.USERNAME.getName());
+        String usernameP = PropertyGetter.getProperty(ClusterProperty.USERNAME.getName(), ClusterProperty.USERNAME.getEnvName());
         if (null != usernameP && usernameP.trim().length() != 0)
             this.username = usernameP;
 
-        String passwordP = System.getProperty(ClusterProperty.PASSWORD.getName());
+        String passwordP = PropertyGetter.getProperty(ClusterProperty.PASSWORD.getName(), ClusterProperty.PASSWORD.getEnvName());
         if (null != passwordP && passwordP.trim().length() != 0)
             this.password = passwordP;
     }
