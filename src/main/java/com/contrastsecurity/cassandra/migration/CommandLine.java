@@ -22,6 +22,11 @@ public class CommandLine {
 	public static final String VALIDATE = "validate";
 
 	/**
+	 * command to trigger clear action
+	 */
+	public static final String CLEAR = "clear";
+
+	/**
 	 * logging support
 	 */
 	private static Log LOG;
@@ -45,10 +50,16 @@ public class CommandLine {
 		CassandraMigration cm = new CassandraMigration();
 		Keyspace ks = new Keyspace();
 		cm.setKeyspace(ks);
-		if (MIGRATE.equalsIgnoreCase(operation)) {
-			cm.migrate();
-		} else if (VALIDATE.equalsIgnoreCase(operation)) {
-			cm.validate();
+		switch (operation.toLowerCase()) {
+			case MIGRATE:
+				cm.migrate();
+				break;
+			case VALIDATE:
+				cm.validate();
+				break;
+			case CLEAR:
+				cm.clear();
+				break;
 		}
 	}
 
@@ -92,6 +103,7 @@ public class CommandLine {
 		LOG.info("========");
 		LOG.info("migrate  : Migrates the database");
 		LOG.info("validate : Validates the applied migrations against the available ones");
+		LOG.info("clear : Clears the whole database");
 		LOG.info("");
 		LOG.info("Add -X to print debug output");
 		LOG.info("Add -q to suppress all output, except for errors and warnings");
