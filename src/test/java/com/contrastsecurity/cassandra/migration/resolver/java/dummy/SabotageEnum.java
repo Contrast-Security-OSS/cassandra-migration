@@ -17,6 +17,7 @@ package com.contrastsecurity.cassandra.migration.resolver.java.dummy;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 /**
  * Trips up the ClassPathScanner. See issue 801.
@@ -25,7 +26,7 @@ import com.datastax.driver.core.Session;
 public enum SabotageEnum implements JavaMigration {
     FAIL {
         @Override
-        public void migrate(Session session) throws Exception {
+        public void migrate(CqlSession session) throws Exception {
 
         }
     }

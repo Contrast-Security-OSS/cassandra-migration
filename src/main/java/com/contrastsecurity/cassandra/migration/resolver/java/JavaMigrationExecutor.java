@@ -4,6 +4,7 @@ import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 /**
  * Adapter for executing migrations implementing JavaMigration.
@@ -24,7 +25,7 @@ public class JavaMigrationExecutor implements MigrationExecutor {
     }
 
     @Override
-    public void execute(Session session) {
+    public void execute(CqlSession session) {
         try {
             javaMigration.migrate(session);
         } catch (Exception e) {

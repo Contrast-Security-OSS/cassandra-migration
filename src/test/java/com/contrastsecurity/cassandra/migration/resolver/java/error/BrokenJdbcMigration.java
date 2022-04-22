@@ -17,6 +17,7 @@ package com.contrastsecurity.cassandra.migration.resolver.java.error;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 /**
  * Test for exception in constructor support.
@@ -26,7 +27,7 @@ public class BrokenJdbcMigration implements JavaMigration {
         throw new IllegalStateException("Expected!");
     }
 
-    public final void migrate(Session session) throws Exception {
+    public final void migrate(CqlSession session) throws Exception {
         // Do nothing
     }
 }

@@ -10,6 +10,7 @@ import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.utils.StopWatch;
 import com.contrastsecurity.cassandra.migration.utils.TimeFormat;
 import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 public class Migrate {
     private static final Log LOG = LogFactory.getLog(Migrate.class);
@@ -17,12 +18,12 @@ public class Migrate {
     private final MigrationVersion target;
     private final SchemaVersionDAO schemaVersionDAO;
     private final MigrationResolver migrationResolver;
-    private final Session session;
+    private final CqlSession session;
     private final String user;
     private final boolean allowOutOfOrder;
 
     public Migrate(MigrationResolver migrationResolver, MigrationVersion target, SchemaVersionDAO schemaVersionDAO,
-                   Session session, String user, boolean allowOutOfOrder) {
+                   CqlSession session, String user, boolean allowOutOfOrder) {
         this.migrationResolver = migrationResolver;
         this.schemaVersionDAO = schemaVersionDAO;
         this.session = session;

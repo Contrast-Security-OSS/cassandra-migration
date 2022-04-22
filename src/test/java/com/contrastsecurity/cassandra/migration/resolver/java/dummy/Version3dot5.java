@@ -19,12 +19,13 @@ import com.contrastsecurity.cassandra.migration.api.MigrationChecksumProvider;
 import com.contrastsecurity.cassandra.migration.api.MigrationInfoProvider;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 /**
  * Test migration.
  */
 public class Version3dot5 extends DummyAbstractJavaMigration implements MigrationInfoProvider, MigrationChecksumProvider {
-    public void doMigrate(Session session) throws Exception {
+    public void doMigrate(CqlSession session) throws Exception {
         //Do nothing.
     }
 

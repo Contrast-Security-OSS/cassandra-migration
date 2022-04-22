@@ -2,13 +2,24 @@ package com.contrastsecurity.cassandra.migration.config;
 
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.utils.StringUtils;
+import com.datastax.oss.driver.api.core.DefaultConsistencyLevel;
 
 public class MigrationConfigs {
+
+    public MigrationConfigs(Keyspace keyspace) {
+        this.keyspace = keyspace;
+    }
+
+    public String getTablePrefix() {
+        return null;
+    }
+
     public enum MigrationProperty {
         SCRIPTS_ENCODING("cassandra.migration.scripts.encoding", "Encoding for CQL scripts"),
         SCRIPTS_LOCATIONS("cassandra.migration.scripts.locations", "Locations of the migration scripts in CSV format"),
         ALLOW_OUTOFORDER("cassandra.migration.scripts.allowoutoforder", "Allow out of order migration"),
-        TARGET_VERSION("cassandra.migration.version.target", "The target version. Migrations with a higher version number will be ignored.");
+        TARGET_VERSION("cassandra.migration.version.target", "The target version. Migrations with a higher version number will be ignored."),
+        EXECUTION_PROFILE("cassandra.migration.execution.profile", "Execution Profile");
 
         private String name;
         private String description;
@@ -47,6 +58,10 @@ public class MigrationConfigs {
         }
     }
 
+    private Keyspace keyspace;
+
+    private DefaultConsistencyLevel consistencyLevel = DefaultConsistencyLevel.QUORUM;
+
     /**
      * The encoding of Cql migration scripts (default: UTF-8)
      */
@@ -56,6 +71,8 @@ public class MigrationConfigs {
      * Locations of the migration scripts in CSV format (default: db/migration)
      */
     private String[] scriptsLocations = {"db/migration"};
+
+    private String executionProfile;
 
     /**
      * Allow out of order migrations (default: false)
@@ -106,4 +123,39 @@ public class MigrationConfigs {
     public void setTargetAsString(String target) {
         this.target = MigrationVersion.fromVersion(target);
     }
+
+    public String getExecutionProfile() {
+        return executionProfile;
+    }
+
+    public void setExecutionProfile(String executionProfile) {
+        this.executionProfile = executionProfile;
+    }
+
+    public Keyspace getKeyspace() {
+        return keyspace;
+    }
+
+    public void setKeyspace(Keyspace keyspace) {
+        this.keyspace = keyspace;
+    }
+
+    public DefaultConsistencyLevel getConsistencyLevel() {
+        return consistencyLevel;
+    }
+
+    public void setConsistencyLevel(DefaultConsistencyLevel consistencyLevel) {
+        this.consistencyLevel = consistencyLevel;
+    }
+
+    /**
+     * Indicates if the underlying configuration is valid. Currently, a configuration is considered
+     * valid if a keyspace name or an instance of keyspace is provided.
+     *
+     * @return true if the configuration is valid, false otherwise.
+     */
+    public boolean isValid() {
+        return keyspace != null;
+    }
+
 }

@@ -17,12 +17,13 @@ package com.contrastsecurity.cassandra.migration.resolver.java.dummy;
 
 import com.contrastsecurity.cassandra.migration.api.JavaMigration;
 import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 /**
  * Test migration.
  */
 public class V2__InterfaceBasedMigration implements JavaMigration {
-    public void migrate(Session session) throws Exception {
+    public void migrate(CqlSession session) throws Exception {
         //Do nothing.
     }
 }
