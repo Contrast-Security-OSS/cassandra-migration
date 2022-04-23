@@ -12,6 +12,7 @@ import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.resolver.CompositeMigrationResolver;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
+import com.contrastsecurity.cassandra.migration.utils.StringUtils;
 import com.contrastsecurity.cassandra.migration.utils.VersionPrinter;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
@@ -150,21 +151,19 @@ public class CassandraMigration {
                 if (null == keyspace.getCluster())
                     throw new IllegalArgumentException("Unable to establish Cassandra session. Cluster is not configured.");
 
-                com.datastax.driver.core.Cluster.Builder builder = new com.datastax.driver.core.Cluster.Builder();
-                builder.addContactPoints(keyspace.getCluster().getContactpoints()).withPort(keyspace.getCluster().getPort());
+                CqlSessionBuilder cqlSessionBuilder = new CqlSessionBuilder()
+                        .withKeyspace(keyspace.getName());
                 if (null != keyspace.getCluster().getUsername() && !keyspace.getCluster().getUsername().trim().isEmpty()) {
                     if (null != keyspace.getCluster().getPassword() && !keyspace.getCluster().getPassword().trim().isEmpty()) {
-                        builder.withCredentials(keyspace.getCluster().getUsername(),
+                        cqlSessionBuilder.withAuthCredentials(keyspace.getCluster().getUsername(),
                                 keyspace.getCluster().getPassword());
                     } else {
                         throw new IllegalArgumentException("Password must be provided with username.");
                     }
                 }
-
-
-                CqlSessionBuilder cqlSessionBuilder = new CqlSessionBuilder()
-                        .withKeyspace(keyspace.getName())
-                        .withLocalDatacenter("datacenter1");
+                if (StringUtils.hasText(keyspace.getCluster().getLocalDatacenter())) {
+                    cqlSessionBuilder.withLocalDatacenter(keyspace.getCluster().getLocalDatacenter());
+                }
                 for (String contactPoint : keyspace.getCluster().getContactpoints()) {
                     cqlSessionBuilder.addContactPoint(new InetSocketAddress(contactPoint, keyspace.getCluster().getPort()));
                 }

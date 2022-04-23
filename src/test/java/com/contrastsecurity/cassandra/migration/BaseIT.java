@@ -73,7 +73,7 @@ public abstract class BaseIT {
                 .build();
         return new CqlSessionBuilder()
                 .addContactPoint(new InetSocketAddress(CASSANDRA_CONTACT_POINT, CASSANDRA_PORT))
-                .withKeyspace(CASSANDRA__KEYSPACE)
+                //.withKeyspace(CASSANDRA__KEYSPACE)
                 .withConfigLoader(loader)
                 .withLocalDatacenter("datacenter1")
                 .build();

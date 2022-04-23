@@ -30,6 +30,7 @@ public class Cluster {
     private int port = 9042;
     private String username;
     private String password;
+    private String localDatacenter;
 
     public Cluster() {
         String contactpointsP = System.getProperty(ClusterProperty.CONTACTPOINTS.getName());
@@ -79,5 +80,13 @@ public class Cluster {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getLocalDatacenter() {
+        return localDatacenter;
+    }
+
+    public void setLocalDatacenter(String localDatacenter) {
+        this.localDatacenter = localDatacenter;
     }
 }

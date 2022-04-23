@@ -9,7 +9,6 @@ import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.utils.StopWatch;
 import com.contrastsecurity.cassandra.migration.utils.TimeFormat;
-import com.datastax.driver.core.Session;
 import com.datastax.oss.driver.api.core.CqlSession;
 
 public class Migrate {
