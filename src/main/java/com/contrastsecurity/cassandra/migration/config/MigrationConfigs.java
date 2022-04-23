@@ -6,38 +6,6 @@ import com.datastax.oss.driver.api.core.DefaultConsistencyLevel;
 
 public class MigrationConfigs {
 
-    public MigrationConfigs(Keyspace keyspace) {
-        this.keyspace = keyspace;
-    }
-
-    public String getTablePrefix() {
-        return null;
-    }
-
-    public enum MigrationProperty {
-        SCRIPTS_ENCODING("cassandra.migration.scripts.encoding", "Encoding for CQL scripts"),
-        SCRIPTS_LOCATIONS("cassandra.migration.scripts.locations", "Locations of the migration scripts in CSV format"),
-        ALLOW_OUTOFORDER("cassandra.migration.scripts.allowoutoforder", "Allow out of order migration"),
-        TARGET_VERSION("cassandra.migration.version.target", "The target version. Migrations with a higher version number will be ignored."),
-        EXECUTION_PROFILE("cassandra.migration.execution.profile", "Execution Profile");
-
-        private String name;
-        private String description;
-
-        MigrationProperty(String name, String description) {
-            this.name = name;
-            this.description = description;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-    }
-
     public MigrationConfigs() {
         String scriptsEncodingP = System.getProperty(MigrationProperty.SCRIPTS_ENCODING.getName());
         if (null != scriptsEncodingP && scriptsEncodingP.trim().length() != 0)
@@ -83,6 +51,20 @@ public class MigrationConfigs {
      * The target version. Migrations with a higher version number will be ignored. (default: the latest version)
      */
     private MigrationVersion target = MigrationVersion.LATEST;
+
+    private String tablePrefix;
+
+    public MigrationConfigs(Keyspace keyspace) {
+        this.keyspace = keyspace;
+    }
+
+    public String getTablePrefix() {
+        return tablePrefix;
+    }
+
+    public void setTablePrefix(String tablePrefix) {
+        this.tablePrefix = tablePrefix;
+    }
 
     public String getEncoding() {
         return encoding;
@@ -157,5 +139,31 @@ public class MigrationConfigs {
     public boolean isValid() {
         return keyspace != null;
     }
+
+
+    public enum MigrationProperty {
+        SCRIPTS_ENCODING("cassandra.migration.scripts.encoding", "Encoding for CQL scripts"),
+        SCRIPTS_LOCATIONS("cassandra.migration.scripts.locations", "Locations of the migration scripts in CSV format"),
+        ALLOW_OUTOFORDER("cassandra.migration.scripts.allowoutoforder", "Allow out of order migration"),
+        TARGET_VERSION("cassandra.migration.version.target", "The target version. Migrations with a higher version number will be ignored."),
+        EXECUTION_PROFILE("cassandra.migration.execution.profile", "Execution Profile");
+
+        private String name;
+        private String description;
+
+        MigrationProperty(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
 
 }
