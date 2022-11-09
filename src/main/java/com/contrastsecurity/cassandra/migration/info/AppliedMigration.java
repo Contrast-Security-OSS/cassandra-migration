@@ -79,6 +79,11 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     private boolean success;
 
     /**
+     * Flag indicating whether the migration failure can be ignored.
+     */
+    private boolean ignored;
+
+    /**
      * Creates a new applied migration. Only called from the RowMapper.
      *
      * @param versionRank   The position of this version amongst all others. (For easy order by sorting)
@@ -96,6 +101,28 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     public AppliedMigration(int versionRank, int installedRank, MigrationVersion version, String description, MigrationType type,
                             String script, Integer checksum, Date installedOn,
                             String installedBy, int executionTime, boolean success) {
+        this(versionRank, installedRank, version, description, type, script, checksum, installedOn, installedBy, executionTime, success, false);
+    }
+
+    /**
+     * Creates a new applied migration. Only called from the RowMapper.
+     *
+     * @param versionRank   The position of this version amongst all others. (For easy order by sorting)
+     * @param installedRank The order in which this migration was applied amongst all others. (For out of order detection)
+     * @param version       The target version of this migration.
+     * @param description   The description of the migration.
+     * @param type          The type of migration (INIT, CQL, ...)
+     * @param script        The name of the script to execute for this migration, relative to its classpath location.
+     * @param checksum      The checksum of the migration. (Optional)
+     * @param installedOn   The timestamp when this migration was installed.
+     * @param installedBy   The user that installed this migration.
+     * @param executionTime The execution time (in millis) of this migration.
+     * @param success       Flag indicating whether the migration was successful or not.
+     * @param ignored       Flag indicating whether the migration failure can be ignored.
+     */
+    public AppliedMigration(int versionRank, int installedRank, MigrationVersion version, String description, MigrationType type,
+                            String script, Integer checksum, Date installedOn,
+                            String installedBy, int executionTime, boolean success, boolean ignored) {
         this.versionRank = versionRank;
         this.installedRank = installedRank;
         this.version = version;
@@ -107,6 +134,7 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
         this.installedBy = installedBy;
         this.executionTime = executionTime;
         this.success = success;
+        this.ignored = ignored;
     }
 
     /**
@@ -123,6 +151,24 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
      */
     public AppliedMigration(MigrationVersion version, String description, MigrationType type, String script,
                             Integer checksum, String installedBy, int executionTime, boolean success) {
+        this(version, description, type, script, checksum, installedBy, executionTime, success, false);
+    }
+
+    /**
+     * Creates a new applied migration.
+     *
+     * @param version       The target version of this migration.
+     * @param description   The description of the migration.
+     * @param type          The type of migration (INIT, CQL, ...)
+     * @param script        The name of the script to execute for this migration, relative to its classpath location.
+     * @param checksum      The checksum of the migration. (Optional)
+     * @param installedBy   The user that installed this migration.
+     * @param executionTime The execution time (in millis) of this migration.
+     * @param success       Flag indicating whether the migration was successful or not.
+     * @param ignored       Flag indicating whether the migration failure can be ignored.
+     */
+    public AppliedMigration(MigrationVersion version, String description, MigrationType type, String script,
+                            Integer checksum, String installedBy, int executionTime, boolean success, boolean ignored) {
         this.version = version;
         this.description = abbreviateDescription(description);
         this.type = type;
@@ -131,6 +177,7 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
         this.installedBy = installedBy;
         this.executionTime = executionTime;
         this.success = success;
+        this.ignored = ignored;
     }
 
     /**
@@ -246,6 +293,13 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
         return success;
     }
 
+    /**
+     * @return Flag indicating whether the migration failure can be ignored.
+     */
+    public boolean isIgnored() {
+        return ignored;
+    }
+
     @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object o) {
@@ -257,6 +311,7 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
         if (executionTime != that.executionTime) return false;
         if (installedRank != that.installedRank) return false;
         if (success != that.success) return false;
+        if (ignored != that.ignored) return false;
         if (versionRank != that.versionRank) return false;
         if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
         if (!description.equals(that.description)) return false;
@@ -280,6 +335,7 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
         result = 31 * result + (installedBy != null ? installedBy.hashCode() : 0);
         result = 31 * result + executionTime;
         result = 31 * result + (success ? 1 : 0);
+        result = 31 * result + (ignored ? 1 : 0);
         return result;
     }
 

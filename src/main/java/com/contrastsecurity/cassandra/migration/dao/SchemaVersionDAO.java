@@ -15,8 +15,6 @@ import com.datastax.oss.driver.api.core.DriverException;
 import com.datastax.oss.driver.api.core.cql.*;
 import com.datastax.oss.driver.api.core.metadata.Metadata;
 
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.*;
 
 import static com.contrastsecurity.cassandra.migration.utils.Ensure.notNull;
@@ -30,6 +28,7 @@ public class SchemaVersionDAO {
     private final String tableName;
     private final String keyspaceName;
     private final String tableCountName;
+    private final String tableMigrationVersion = MigrationVersion.TABLE;
     private final String executionProfileName;
     private final CachePrepareStatement cachePs;
     private final CqlSession session;
@@ -45,7 +44,13 @@ public class SchemaVersionDAO {
     private static final String CREATE_MIGRATION_CF = "CREATE TABLE IF NOT EXISTS %s"
             + " (version_rank int, installed_rank int, version text, description text,"
             + " script text, checksum int, type text, installed_by text, installed_on timestamp, "
-            + " execution_time int, success boolean, PRIMARY KEY (version))";
+            + " execution_time int, success boolean, ignored boolean, PRIMARY KEY (version))";
+
+    /**
+     * Statement used to create the table that knows the current version
+     */
+    private static final String CREATE_MIGRATION_VERSION = "CREATE TABLE IF NOT EXISTS %s"
+            + " (version text, PRIMARY KEY (version))";
 
     private static final String CREATE_MIGRATION_COUNT_CF = "CREATE TABLE IF NOT EXISTS %s" +
             " (name text, count counter, PRIMARY KEY (name))";
@@ -55,8 +60,8 @@ public class SchemaVersionDAO {
      */
     private static final String ADD_MIGRATION = "insert into %s"
             + "(version_rank, installed_rank, version, description, " +
-              "type, script, checksum, installed_on, installed_by, execution_time, success) values" +
-            "(?, ?, ?, ?, ?, ?, ?, dateOf(now()), ?, ?, ?)";
+              "type, script, checksum, installed_on, installed_by, execution_time, success, ignored) values" +
+            "(?, ?, ?, ?, ?, ?, ?, dateOf(now()), ?, ?, ?, ?)";
     private static final String UPDATE_MIGRATION_COUNT = "update %s " +
             "set count = count + 1 where name = 'installed_rank'";
     private static final String UPDATE_MIGRATION_VERSION_RANK = "update %s " +
@@ -64,11 +69,16 @@ public class SchemaVersionDAO {
     private static final String SELECT_COUNT_MIGRATION = "select count from %s " +
             "where name = 'installed_rank'";
     private static final String SELECT_MIGRATION = "select version, version_rank from %s";
+    private static final String ADD_MIGRATION_VERSION = "insert into %s(version) values(?)";
+    private static final String UPDATE_MIGRATION_VERSION = "update %s set version = ?";
+
     /**
      * The query that retrieves current schema version
      */
     private static final String VERSION_QUERY = "select version_rank, installed_rank, version, description, " +
-            "type, script, checksum, installed_on, installed_by, execution_time, success from %s";
+            "type, script, checksum, installed_on, installed_by, execution_time, success, ignored from %s";
+
+    private static final String MIGRATION_VERSION_QUERY = "select version from %s";
 
 
     public SchemaVersionDAO(CqlSession session, Keyspace keyspace) {
@@ -125,9 +135,25 @@ public class SchemaVersionDAO {
                 appliedMigration.getChecksum(),
                 appliedMigration.getInstalledBy(),
                 appliedMigration.getExecutionTime(),
-                appliedMigration.isSuccess());
+                appliedMigration.isSuccess(),
+                appliedMigration.isIgnored());
         executeStatement(boundStatement, this.consistencyLevel);
         LOG.debug("Schema version table " + tableName + " successfully updated to reflect changes");
+    }
+
+    public void addMigrationVersion(String version) {
+        createTablesIfNotExist();
+        PreparedStatement addMigrationStatement = cachePs.prepare(format(ADD_MIGRATION_VERSION, getTableMigrationVersion()));
+        BoundStatement boundStatement = addMigrationStatement.bind(version);
+        executeStatement(boundStatement, this.consistencyLevel);
+        LOG.debug("Added schema version");
+    }
+
+    public void updateMigrationVersion(String version) {
+        PreparedStatement updateMigrationVersion = cachePs.prepare(format(UPDATE_MIGRATION_VERSION, getTableMigrationVersion()));
+        BoundStatement boundStatement = updateMigrationVersion.bind(version);
+        executeStatement(boundStatement, this.consistencyLevel);
+        LOG.debug("Updated schema version to " + version);
     }
 
     /**
@@ -142,7 +168,6 @@ public class SchemaVersionDAO {
         ResultSet resultSet = executeStatement(format(VERSION_QUERY, getTableName()));
         List<AppliedMigration> resultsList = new ArrayList<>();
         for (Row row : resultSet) {
-            Instant instant = row.getLocalDate("installed_on").atStartOfDay(ZoneId.systemDefault()).toInstant();
             resultsList.add(new AppliedMigration(
                     row.getInt("version_rank"),
                     row.getInt("installed_rank"),
@@ -151,14 +176,24 @@ public class SchemaVersionDAO {
                     MigrationType.valueOf(row.getString("type")),
                     row.getString("script"),
                     row.isNull("checksum") ? null : row.getInt("checksum"),
-                    Date.from(instant),
+                    Date.from(row.getInstant("installed_on")),
                     row.getString("installed_by"),
                     row.getInt("execution_time"),
-                    row.getBool("success")
+                    row.getBoolean("success"),
+                    row.getBoolean("ignored")
             ));
         }
         return resultsList;
     }
+
+    public boolean versionNotFound() {
+        if (!tablesExist()) {
+            return true;
+        }
+        ResultSet resultSet = executeStatement(format(MIGRATION_VERSION_QUERY, getTableMigrationVersion()));
+        return resultSet.all().isEmpty();
+    }
+
 
     /**
      * Calculates the installed rank for the new migration to be inserted.
@@ -269,7 +304,8 @@ public class SchemaVersionDAO {
         Metadata metadata = session.getMetadata();
 
         return isTableExisting(metadata, tableName)
-                && isTableExisting(metadata, tableCountName);
+                && isTableExisting(metadata, tableCountName)
+                && isTableExisting(metadata, tableMigrationVersion);
     }
 
     private boolean isTableExisting(Metadata metadata, String tableName) {
@@ -282,6 +318,7 @@ public class SchemaVersionDAO {
     private void createSchemaTable() {
         executeStatement(format(CREATE_MIGRATION_CF, getTableName()));
         executeStatement(format(CREATE_MIGRATION_COUNT_CF, getTableCountName()));
+        executeStatement(format(CREATE_MIGRATION_VERSION, getTableMigrationVersion()));
     }
 
 
@@ -295,5 +332,9 @@ public class SchemaVersionDAO {
 
     public String getTableCountName() {
         return tableCountName;
+    }
+
+    public String getTableMigrationVersion() {
+        return tableMigrationVersion;
     }
 }
