@@ -3,7 +3,7 @@ package com.contrastsecurity.cassandra.migration.resolver.cql;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.contrastsecurity.cassandra.migration.script.CqlScript;
 import com.contrastsecurity.cassandra.migration.utils.scanner.Resource;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 /**
  * Database migration based on a cql file.
@@ -34,7 +34,7 @@ public class CqlMigrationExecutor implements MigrationExecutor {
     }
 
     @Override
-    public void execute(Session session) {
+    public void execute(CqlSession session) {
         CqlScript cqlScript = new CqlScript(cqlScriptResource, encoding);
         cqlScript.execute(session);
     }

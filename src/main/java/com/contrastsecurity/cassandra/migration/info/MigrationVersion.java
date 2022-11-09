@@ -28,7 +28,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
     public static final MigrationVersion LATEST = new MigrationVersion(BigInteger.valueOf(-1), "<< Latest Version >>");
     public static final MigrationVersion CURRENT = new MigrationVersion(BigInteger.valueOf(-2), "<< Current Version >>");
 
-    private static final String TABLE = "cassandra_migration_version";
+    public static final String TABLE = "migration_version";
     private List<BigInteger> versionParts;
     private String displayText;
 

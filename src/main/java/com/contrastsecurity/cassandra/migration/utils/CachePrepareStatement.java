@@ -2,15 +2,15 @@ package com.contrastsecurity.cassandra.migration.utils;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 
 public class CachePrepareStatement {
 	private ConcurrentHashMap<Integer, PreparedStatement> cacheStatement = new ConcurrentHashMap<>();
 
-	private Session session;
+	private final CqlSession session;
 
-	public CachePrepareStatement(Session session) {
+	public CachePrepareStatement(CqlSession session) {
 		this.session = session;
 	}
 
