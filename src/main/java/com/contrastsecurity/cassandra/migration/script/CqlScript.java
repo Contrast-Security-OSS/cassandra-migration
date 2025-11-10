@@ -20,7 +20,7 @@ import com.contrastsecurity.cassandra.migration.logging.Log;
 import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.utils.StringUtils;
 import com.contrastsecurity.cassandra.migration.utils.scanner.Resource;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -89,7 +89,7 @@ public class CqlScript {
      * Executes this script against the database.
      * @param session Cassandra session
      */
-    public void execute(final Session session) {
+    public void execute(final CqlSession session) {
         for (String cqlStatement : cqlStatements) {
             LOG.debug("Executing CQL: " + cqlStatement);
             session.execute(cqlStatement);

@@ -9,7 +9,7 @@ import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.utils.StopWatch;
 import com.contrastsecurity.cassandra.migration.utils.TimeFormat;
-import com.datastax.driver.core.Session;
+import com.datastax.oss.driver.api.core.CqlSession;
 
 public class Migrate {
     private static final Log LOG = LogFactory.getLog(Migrate.class);
@@ -17,12 +17,12 @@ public class Migrate {
     private final MigrationVersion target;
     private final SchemaVersionDAO schemaVersionDAO;
     private final MigrationResolver migrationResolver;
-    private final Session session;
+    private final CqlSession session;
     private final String user;
     private final boolean allowOutOfOrder;
 
     public Migrate(MigrationResolver migrationResolver, MigrationVersion target, SchemaVersionDAO schemaVersionDAO,
-                   Session session, String user, boolean allowOutOfOrder) {
+                   CqlSession session, String user, boolean allowOutOfOrder) {
         this.migrationResolver = migrationResolver;
         this.schemaVersionDAO = schemaVersionDAO;
         this.session = session;
@@ -36,6 +36,7 @@ public class Migrate {
         stopWatch.start();
 
         int migrationSuccessCount = 0;
+        boolean firstTimeMigration = schemaVersionDAO.versionNotFound();
         while (true) {
             final boolean firstRun = migrationSuccessCount == 0;
 
@@ -76,11 +77,18 @@ public class Migrate {
             MigrationInfo[] pendingMigrations = infoService.pending();
 
             if (pendingMigrations.length == 0) {
+                if (infoService.current() != null) {
+                    if (firstTimeMigration) {
+                        schemaVersionDAO.addMigrationVersion(infoService.current().getVersion().getVersion());
+                    } else if (migrationSuccessCount > 0){
+                        schemaVersionDAO.updateMigrationVersion(infoService.current().getVersion().getVersion());
+                    }
+                }
                 break;
             }
 
             boolean isOutOfOrder = pendingMigrations[0].getVersion().compareTo(currentSchemaVersion) < 0;
-            MigrationVersion mv = applyMigration(pendingMigrations[0], isOutOfOrder);
+            MigrationVersion mv = applyMigration(pendingMigrations[0], isOutOfOrder, firstTimeMigration);
             if(mv == null) {
                 //no more migrations
                 break;
@@ -96,11 +104,10 @@ public class Migrate {
         return migrationSuccessCount;
     }
 
-    private MigrationVersion applyMigration(final MigrationInfo migration, boolean isOutOfOrder) {
+    private MigrationVersion applyMigration(final MigrationInfo migration, boolean isOutOfOrder, boolean firstTimeMigration) {
         MigrationVersion version = migration.getVersion();
         LOG.info("Migrating keyspace " + schemaVersionDAO.getKeyspace().getName() + " to version " + version + " - " + migration.getDescription() +
                 (isOutOfOrder ? " (out of order)" : ""));
-
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
@@ -114,16 +121,21 @@ public class Migrate {
             LOG.debug("Successfully completed and committed migration of keyspace " +
                     schemaVersionDAO.getKeyspace().getName() + " to version " + version);
         } catch (CassandraMigrationException e) {
-            String failedMsg = "Migration of keyspace " + schemaVersionDAO.getKeyspace().getName() +
-                    " to version " + version + " failed!";
-
-            LOG.error(failedMsg + " Please restore backups and roll back database and code!");
-
             stopWatch.stop();
             int executionTime = (int) stopWatch.getTotalTimeMillis();
+            if (firstTimeMigration) {
+                AppliedMigration appliedMigration = new AppliedMigration(version, migration.getDescription(),
+                        migration.getType(), migration.getScript(), migration.getChecksum(), user, executionTime, true, firstTimeMigration);
+                schemaVersionDAO.addAppliedMigration(appliedMigration);
+                LOG.error("Failed applying migration but since migration is being run first time it will be ignored", e);
+                return version;
+            }
             AppliedMigration appliedMigration = new AppliedMigration(version, migration.getDescription(),
                     migration.getType(), migration.getScript(), migration.getChecksum(), user, executionTime, false);
             schemaVersionDAO.addAppliedMigration(appliedMigration);
+            String failedMsg = "Migration of keyspace " + schemaVersionDAO.getKeyspace().getName() +
+                    " to version " + version + " failed!";
+            LOG.error(failedMsg + " Please restore backups and roll back database and code!");
             throw e;
         }
 

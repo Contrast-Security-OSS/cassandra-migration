@@ -4,10 +4,11 @@ import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfo;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoDumper;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
+
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
+import com.datastax.oss.driver.api.querybuilder.select.Select;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,7 +16,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.literal;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -40,27 +41,38 @@ public class CassandraMigrationIT extends BaseIT {
 				assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
 				assertThat(info.getScript().contains(".java"), is(true));
 
-				Select select = QueryBuilder.select().column("value").from("test1");
-				select.where(eq("space", "web")).and(eq("key", "facebook"));
-				ResultSet result = getSession().execute(select);
+				Select select = QueryBuilder.selectFrom("test1")
+						.column("value")
+						.whereColumn("space")
+						.isEqualTo(literal("web"))
+						.whereColumn("key")
+						.isEqualTo(literal("facebook"));
+				ResultSet result = getSession().execute(select.build());
 				assertThat(result.one().getString("value"), is("facebook.com"));
 			} else if (info.getVersion().equals("3.0")) {
 				assertThat(info.getDescription(), is("Third"));
 				assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
 				assertThat(info.getScript().contains(".java"), is(true));
 
-				Select select = QueryBuilder.select().column("value").from("test1");
-				select.where(eq("space", "web")).and(eq("key", "google"));
-				ResultSet result = getSession().execute(select);
+				Select select = QueryBuilder.selectFrom("test1")
+						.column("value")
+						.whereColumn("space")
+						.isEqualTo(literal("web"))
+						.whereColumn("key")
+						.isEqualTo(literal("google"));
+				ResultSet result = getSession().execute(select.build());
 				assertThat(result.one().getString("value"), is("google.com"));
 			} else if (info.getVersion().equals("2.0.0")) {
 				assertThat(info.getDescription(), is("Second"));
 				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
 				assertThat(info.getScript().contains(".cql"), is(true));
 
-				Select select = QueryBuilder.select().column("title").column("message").from("contents");
-				select.where(eq("id", 1));
-				Row row = getSession().execute(select).one();
+				Select select = QueryBuilder.selectFrom("contents")
+								.column("title")
+								.column("message")
+								.whereColumn("id")
+								.isEqualTo(literal(1));
+				Row row = getSession().execute(select.build()).one();
 				assertThat(row.getString("title"), is("foo"));
 				assertThat(row.getString("message"), is("bar"));
 			} else if (info.getVersion().equals("1.0.0")) {
@@ -68,9 +80,13 @@ public class CassandraMigrationIT extends BaseIT {
 				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
 				assertThat(info.getScript().contains(".cql"), is(true));
 
-				Select select = QueryBuilder.select().column("value").from("test1");
-				select.where(eq("space", "foo")).and(eq("key", "bar"));
-				ResultSet result = getSession().execute(select);
+				Select select = QueryBuilder.selectFrom("test1")
+						.column("value")
+						.whereColumn("space")
+						.isEqualTo(literal( "foo"))
+						.whereColumn("key")
+						.isEqualTo(literal("bar"));
+				ResultSet result = getSession().execute(select.build());
 				assertThat(result.one().getString("value"), is("profit!"));
 			}
 
