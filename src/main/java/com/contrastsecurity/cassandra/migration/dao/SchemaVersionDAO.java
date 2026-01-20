@@ -203,7 +203,7 @@ public class SchemaVersionDAO {
         Statement statement = new SimpleStatement(
                 "UPDATE " + keyspace.getName() + "." + tableName + COUNTS_TABLE_NAME_SUFFIX +
                         " SET count = count + 1" +
-                        "WHERE name = 'installed_rank';");
+                        " WHERE name = 'installed_rank';");
         session.execute(statement);
         Select select = QueryBuilder
                 .select("count")
