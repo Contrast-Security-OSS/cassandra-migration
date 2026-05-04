@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: daily
+    groups:
+      dev-dependencies:
+          applies-to: version-updates
+          patterns:
+              - '*'
+          dependency-type: development
+      production-dependencies:
+          applies-to: version-updates
+          patterns:
+              - '*'
+          dependency-type: production
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 14
+      semver-patch-days: 5
+      include:
+          - '*'
+      exclude:
+          - react
